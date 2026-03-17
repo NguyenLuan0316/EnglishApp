@@ -24,5 +24,5 @@ app.MapGet("/api/health", () => new { status = "ok", time = DateTime.UtcNow });
 Console.WriteLine("\n🌊 WordWave API đang chạy tại http://localhost:5000");
 Console.WriteLine("   Swagger/test: http://localhost:5000/api/health\n");
 
-var port = Environment.GetEnvironmentVariable("PORT") ?? "5000";
+var port = Environment.GetEnvironmentVariable("PORT") ?? "10000";
 app.Run($"http://0.0.0.0:{port}");
