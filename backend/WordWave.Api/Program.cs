@@ -8,7 +8,7 @@ builder.Services.AddCors(opt =>
                       "http://localhost:5500",
                       "http://127.0.0.1:5500",
                       "https://englishapp-er2b.onrender.com",
-                      "https://englishapp-luan.netlify.app/")                   
+                      "https://englishapp-luan.netlify.app")                   
          .AllowAnyMethod()));
 
 builder.Services.AddEndpointsApiExplorer();
