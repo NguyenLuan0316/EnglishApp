@@ -1,5 +1,5 @@
 // wordwave/frontend/js/api.js
-const BASE = 'http://localhost:5000/api';
+const BASE = 'http://localhost:10000/api';
 
 async function fetchJson(url) {
   const res = await fetch(url);
