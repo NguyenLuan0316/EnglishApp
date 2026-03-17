@@ -4,11 +4,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddCors(opt =>
     opt.AddDefaultPolicy(p =>
-        p.WithOrigins("http://localhost:5500",   // Live Server (VSCode)
-                      "http://127.0.0.1:5500",
-                      "http://localhost:3000",
-                      "null")                    // file:// khi mở trực tiếp
-         .AllowAnyHeader()
+        p.WithOrigins("http://localhost:5173",   // Live Server (VSCode)
+                      "http://localhost:5500",
+                      "https://englishapp-er2b.onrender.com",
+                      "https://englishapp-luan.netlify.app/")                   
          .AllowAnyMethod()));
 
 builder.Services.AddEndpointsApiExplorer();
