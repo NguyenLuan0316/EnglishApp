@@ -1,6 +1,8 @@
 // wordwave/frontend/js/api.js
-const BASE = 'http://localhost:10000/api';
-
+const BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? 'http://localhost:10000/api'
+  : 'https://englishapp-er2b.onrender.com/api';
+  
 async function fetchJson(url) {
   const res = await fetch(url);
   if (!res.ok) throw new Error(`API error ${res.status}`);
