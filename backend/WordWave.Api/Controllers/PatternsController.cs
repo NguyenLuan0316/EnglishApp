@@ -8,13 +8,18 @@ namespace WordWave.Api.Controllers;
 [Route("api/[controller]")]
 public class PatternsController : ControllerBase
 {
+    private readonly AppDbContext _db;
+    public PatternsController(AppDbContext db) => _db = db;
+
     [HttpGet]
-    public IActionResult GetAll() => Ok(LessonData.Patterns);
+    public IActionResult GetAll() => Ok(_db.SentencePatterns.AsQueryable());
 
     [HttpGet("{id:int}")]
     public IActionResult GetById(int id)
     {
-        var p = LessonData.Patterns.FirstOrDefault(x => x.Id == id);
+        var query = _db.SentencePatterns.AsQueryable();
+
+        var p = query.FirstOrDefault(x => x.Id == id);
         return p is null ? NotFound(new { error = "Not found" }) : Ok(p);
     }
 }

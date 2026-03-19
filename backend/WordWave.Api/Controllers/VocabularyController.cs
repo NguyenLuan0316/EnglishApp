@@ -1,7 +1,6 @@
-// wordwave/backend/WordWave.Api/Controllers/VocabularyController.cs
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using WordWave.Api.Data;
-using WordWave.Api.Models;
 
 namespace WordWave.Api.Controllers;
 
@@ -9,59 +8,64 @@ namespace WordWave.Api.Controllers;
 [Route("api/[controller]")]
 public class VocabularyController : ControllerBase
 {
-    private static readonly List<VocabWord> _words = VocabData.Words;
+    private readonly AppDbContext _db;
+    public VocabularyController(AppDbContext db) => _db = db;
 
-    // GET /api/vocabulary?level=A1&topic=food&search=hello&page=1&limit=20
+    // GET /api/vocabulary?level=A1&topic=office&search=manage&page=1&limit=20
     [HttpGet]
-    public IActionResult GetAll([FromQuery] string? level, [FromQuery] string? topic,
-                                [FromQuery] string? search, [FromQuery] int page = 1, [FromQuery] int limit = 20)
+    public async Task<IActionResult> GetAll(
+        [FromQuery] string? level,
+        [FromQuery] string? topic,
+        [FromQuery] string? search,
+        [FromQuery] int page = 1,
+        [FromQuery] int limit = 20)
     {
-        var query = _words.AsEnumerable();
+        var query = _db.Vocabulary.AsQueryable();
 
-        if (!string.IsNullOrEmpty(level))
-            query = query.Where(w => w.Level.Equals(level, StringComparison.OrdinalIgnoreCase));
+        if (!string.IsNullOrEmpty(level)) query = query.Where(w => w.Level == level);
+        if (!string.IsNullOrEmpty(topic)) query = query.Where(w => w.Topic == topic);
+        if (!string.IsNullOrEmpty(search)) query = query.Where(w =>
+            w.Word.ToLower().Contains(search.ToLower()) ||
+            w.Meaning.ToLower().Contains(search.ToLower()));
 
-        if (!string.IsNullOrEmpty(topic))
-            query = query.Where(w => w.Topic.Equals(topic, StringComparison.OrdinalIgnoreCase));
-
-        if (!string.IsNullOrEmpty(search))
-        {
-            var q = search.ToLower();
-            query = query.Where(w => w.Word.ToLower().Contains(q) || w.Meaning.ToLower().Contains(q));
-        }
-
-        var total     = query.Count();
-        var paginated = query.Skip((page - 1) * limit).Take(limit).ToList();
+        var total = await query.CountAsync();
+        var paginated = await query
+            .OrderBy(w => w.Id)
+            .Skip((page - 1) * limit)
+            .Take(limit)
+            .ToListAsync();
 
         return Ok(new { total, page, limit, data = paginated });
     }
 
-    // GET /api/vocabulary/topics
-    [HttpGet("topics")]
-    public IActionResult GetTopics() =>
-        Ok(_words.Select(w => w.Topic).Distinct().OrderBy(t => t));
-
-    // GET /api/vocabulary/levels
-    [HttpGet("levels")]
-    public IActionResult GetLevels() =>
-        Ok(_words.Select(w => w.Level).Distinct().OrderBy(l => l));
-
-    // GET /api/vocabulary/random?level=A1&topic=food&count=10
+    // GET /api/vocabulary/random?level=B1&count=10
     [HttpGet("random")]
-    public IActionResult GetRandom([FromQuery] string? level, [FromQuery] string? topic, [FromQuery] int count = 10)
+    public async Task<IActionResult> GetRandom(
+        [FromQuery] string? level,
+        [FromQuery] string? topic,
+        [FromQuery] int count = 10)
     {
-        var pool = _words.AsEnumerable();
-        if (!string.IsNullOrEmpty(level)) pool = pool.Where(w => w.Level == level);
-        if (!string.IsNullOrEmpty(topic)) pool = pool.Where(w => w.Topic == topic);
-        var result = pool.OrderBy(_ => Guid.NewGuid()).Take(count).ToList();
+        var query = _db.Vocabulary.AsQueryable();
+        if (!string.IsNullOrEmpty(level)) query = query.Where(w => w.Level == level);
+        if (!string.IsNullOrEmpty(topic)) query = query.Where(w => w.Topic == topic);
+
+        var result = await query
+            .OrderBy(_ => EF.Functions.Random())
+            .Take(count)
+            .ToListAsync();
+
         return Ok(result);
     }
 
-    // GET /api/vocabulary/{id}
+    [HttpGet("topics")]
+    public async Task<IActionResult> GetTopics() =>
+        Ok(await _db.Vocabulary.Select(w => w.Topic).Distinct().ToListAsync());
+
     [HttpGet("{id:int}")]
-    public IActionResult GetById(int id)
+    public async Task<IActionResult> GetById(int id)
     {
-        var word = _words.FirstOrDefault(w => w.Id == id);
-        return word is null ? NotFound(new { error = "Not found" }) : Ok(word);
+        var word = await _db.Vocabulary.FindAsync(id);
+        return word is null ? NotFound() : Ok(word);
     }
 }
+

@@ -11,6 +11,8 @@ public class ReviewController : ControllerBase
 {
     // In-memory store (thay bằng DB trong production)
     private static readonly Dictionary<int, WordProgress> _store = new();
+    private readonly AppDbContext _db;
+    public ReviewController(AppDbContext db) => _db = db;
 
     private static WordProgress GetOrInit(int wordId)
     {
@@ -38,8 +40,10 @@ public class ReviewController : ControllerBase
     [HttpGet("daily")]
     public IActionResult GetDaily()
     {
+        var query = _db.Vocabulary.AsQueryable();
+
         var now = DateTime.UtcNow;
-        var due = VocabData.Words
+        var due = query
             .Where(w => GetOrInit(w.Id).NextReview <= now)
             .Take(20)
             .ToList();
@@ -61,10 +65,12 @@ public class ReviewController : ControllerBase
     [HttpGet("progress")]
     public IActionResult GetProgress()
     {
-        var total   = VocabData.Words.Count;
+        var query = _db.Vocabulary.AsQueryable();
+
+        var total   = query.Count();
         var learned = _store.Values.Count(p => p.CorrectCount > 0);
 
-        var byLevel = VocabData.Words
+        var byLevel = query
             .GroupBy(w => w.Level)
             .ToDictionary(
                 g => g.Key,
