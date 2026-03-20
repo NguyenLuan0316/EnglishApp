@@ -1,6 +1,6 @@
 // wordwave/backend/WordWave.Api/Controllers/PatternsController.cs
 using Microsoft.AspNetCore.Mvc;
-using WordWave.Api.Data;
+using WordWave.Application.Interfaces;
 
 namespace WordWave.Api.Controllers;
 
@@ -8,18 +8,16 @@ namespace WordWave.Api.Controllers;
 [Route("api/[controller]")]
 public class PatternsController : ControllerBase
 {
-    private readonly AppDbContext _db;
-    public PatternsController(AppDbContext db) => _db = db;
+    private readonly IPatternService _service;
+    public PatternsController(IPatternService service) => _service = service;
 
     [HttpGet]
-    public IActionResult GetAll() => Ok(_db.SentencePatterns.AsQueryable());
+    public async Task<IActionResult> GetAll() => Ok(await _service.GetAllAsync());
 
     [HttpGet("{id:int}")]
-    public IActionResult GetById(int id)
+    public async Task<IActionResult> GetById(int id)
     {
-        var query = _db.SentencePatterns.AsQueryable();
-
-        var p = query.FirstOrDefault(x => x.Id == id);
+        var p = await _service.GetByIdAsync(id);
         return p is null ? NotFound(new { error = "Not found" }) : Ok(p);
     }
 }

@@ -1,9 +1,12 @@
-// wordwave/backend/WordWave.Api/Program.cs
 using Microsoft.EntityFrameworkCore;
-using WordWave.Api.Data;
+using WordWave.Application.Interfaces;
+using WordWave.Application.Interfaces.Repositories;
+using WordWave.Application.Services;
+using WordWave.Infrastructure.Data;
+using WordWave.Infrastructure.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
-
+AppContext.SetSwitch("System.Net.DisableIPv6", true);
 builder.Services.AddDbContext<AppDbContext>(opt =>
     opt.UseNpgsql(builder.Configuration.GetConnectionString("Supabase")));
 
@@ -18,6 +21,16 @@ builder.Services.AddCors(opt =>
          .AllowAnyMethod()));
 
 builder.Services.AddEndpointsApiExplorer();
+
+// Dependency Injection
+builder.Services.AddScoped<IGrammarService, GrammarService>();
+builder.Services.AddScoped<IGrammarRepository, GrammarRepository>();
+// New services and repositories
+builder.Services.AddScoped<IVocabularyService, VocabularyService>();
+builder.Services.AddScoped<IVocabularyRepository, VocabularyRepository>();
+builder.Services.AddScoped<IPatternService, PatternService>();
+builder.Services.AddScoped<IPatternRepository, PatternRepository>();
+builder.Services.AddScoped<IReviewService, ReviewService>();
 
 var app = builder.Build();
 

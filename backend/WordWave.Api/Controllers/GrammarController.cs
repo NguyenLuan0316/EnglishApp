@@ -1,7 +1,5 @@
-// wordwave/backend/WordWave.Api/Controllers/GrammarController.cs
 using Microsoft.AspNetCore.Mvc;
-using WordWave.Api.Data;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using WordWave.Application.Interfaces;
 
 namespace WordWave.Api.Controllers;
 
@@ -9,27 +7,26 @@ namespace WordWave.Api.Controllers;
 [Route("api/[controller]")]
 public class GrammarController : ControllerBase
 {
-    private readonly AppDbContext _db;
-    public GrammarController(AppDbContext db) => _db = db;
+    private readonly IGrammarService _service;
 
-    // GET /api/grammar?level=B1
-    [HttpGet]
-    public IActionResult GetAll([FromQuery] string? level)
+    public GrammarController(IGrammarService service)
     {
-        var query = _db.GrammarLessons.AsQueryable();
+        _service = service;
+    }
 
-        var data = query.AsEnumerable();
-        if (!string.IsNullOrEmpty(level))
-            data = data.Where(g => g.Level.Equals(level, StringComparison.OrdinalIgnoreCase));
+    [HttpGet]
+    public async Task<IActionResult> GetAll([FromQuery] string? level)
+    {
+        var data = await _service.GetAllAsync(level);
         return Ok(data);
     }
 
-    // GET /api/grammar/{id}
     [HttpGet("{id:int}")]
-    public IActionResult GetById(int id)
+    public async Task<IActionResult> GetById(int id)
     {
-        var query = _db.GrammarLessons.AsQueryable();
-        var lesson = query.FirstOrDefault(g => g.Id == id);
-        return lesson is null ? NotFound(new { error = "Not found" }) : Ok(lesson);
+        var lesson = await _service.GetByIdAsync(id);
+        return lesson is null
+            ? NotFound(new { error = "Not found" })
+            : Ok(lesson);
     }
 }

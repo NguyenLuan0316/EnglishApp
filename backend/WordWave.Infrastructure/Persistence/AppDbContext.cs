@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using WordWave.Api.Models;
+using WordWave.Domain.Models;
 
-namespace WordWave.Api.Data;
+namespace WordWave.Infrastructure.Data;
 
 public class AppDbContext : DbContext
 {

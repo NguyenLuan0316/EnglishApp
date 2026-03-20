@@ -1,5 +1,5 @@
 // wordwave/backend/WordWave.Api/Data/VocabData.cs
-using WordWave.Api.Models;
+using WordWave.Domain.Models;
 
 namespace WordWave.Api.Data;
 

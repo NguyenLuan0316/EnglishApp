@@ -1,7 +1,7 @@
 // wordwave/backend/WordWave.Api/Controllers/ReviewController.cs
 using Microsoft.AspNetCore.Mvc;
-using WordWave.Api.Data;
-using WordWave.Api.Models;
+using WordWave.Application.Interfaces;
+using WordWave.Domain.Models;
 
 namespace WordWave.Api.Controllers;
 
@@ -9,77 +9,18 @@ namespace WordWave.Api.Controllers;
 [Route("api/[controller]")]
 public class ReviewController : ControllerBase
 {
-    // In-memory store (thay bằng DB trong production)
-    private static readonly Dictionary<int, WordProgress> _store = new();
-    private readonly AppDbContext _db;
-    public ReviewController(AppDbContext db) => _db = db;
-
-    private static WordProgress GetOrInit(int wordId)
-    {
-        if (!_store.ContainsKey(wordId))
-            _store[wordId] = new WordProgress { WordId = wordId, NextReview = DateTime.UtcNow };
-        return _store[wordId];
-    }
-
-    // SM-2 đơn giản: tính ngày ôn tiếp theo
-    private static DateTime CalcNextReview(int correct, int wrong)
-    {
-        var total = correct + wrong;
-        double ratio = total == 0 ? 0 : (double)correct / total;
-        int daysLater = ratio switch
-        {
-            >= 0.9 => 7,
-            >= 0.7 => 3,
-            >= 0.5 => 1,
-            _      => 0,
-        };
-        return DateTime.UtcNow.AddDays(daysLater);
-    }
+    private readonly IReviewService _service;
+    public ReviewController(IReviewService service) => _service = service;
 
     // GET /api/review/daily  — từ cần ôn hôm nay (tối đa 20)
     [HttpGet("daily")]
-    public IActionResult GetDaily()
-    {
-        var query = _db.Vocabulary.AsQueryable();
-
-        var now = DateTime.UtcNow;
-        var due = query
-            .Where(w => GetOrInit(w.Id).NextReview <= now)
-            .Take(20)
-            .ToList();
-        return Ok(due);
-    }
+    public async Task<IActionResult> GetDaily() => Ok(await _service.GetDailyAsync());
 
     // POST /api/review/submit  body: { wordId, correct }
     [HttpPost("submit")]
-    public IActionResult Submit([FromBody] SubmitRequest req)
-    {
-        var p = GetOrInit(req.WordId);
-        if (req.Correct) p.CorrectCount++; else p.WrongCount++;
-        p.LastReviewed = DateTime.UtcNow;
-        p.NextReview   = CalcNextReview(p.CorrectCount, p.WrongCount);
-        return Ok(new { success = true, progress = p });
-    }
+    public async Task<IActionResult> Submit([FromBody] SubmitRequest req) => Ok(await _service.SubmitAsync(req));
 
     // GET /api/review/progress  — tổng tiến độ
     [HttpGet("progress")]
-    public IActionResult GetProgress()
-    {
-        var query = _db.Vocabulary.AsQueryable();
-
-        var total   = query.Count();
-        var learned = _store.Values.Count(p => p.CorrectCount > 0);
-
-        var byLevel = query
-            .GroupBy(w => w.Level)
-            .ToDictionary(
-                g => g.Key,
-                g => new
-                {
-                    Total   = g.Count(),
-                    Learned = g.Count(w => _store.TryGetValue(w.Id, out var p) && p.CorrectCount > 0)
-                });
-
-        return Ok(new { total, learned, byLevel });
-    }
+    public async Task<IActionResult> GetProgress() => Ok(await _service.GetProgressAsync());
 }

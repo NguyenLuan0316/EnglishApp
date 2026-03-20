@@ -1,4 +1,4 @@
-namespace WordWave.Api.Models;
+namespace WordWave.Domain.Models;
 public class VocabWord
 {
     public int Id { get; set; }
