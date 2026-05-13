@@ -7,7 +7,7 @@ namespace WordWave.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class VocabularyController : ControllerBase
+public class VocabularyController : ApiControllerBase
 {
     private readonly IVocabularyService _service;
     public VocabularyController(IVocabularyService service) => _service = service;
@@ -35,6 +35,6 @@ public class VocabularyController : ControllerBase
     public async Task<IActionResult> GetById(int id)
     {
         var word = await _service.GetByIdAsync(id);
-        return word is null ? NotFound() : Ok(word);
+        return word is null ? NotFoundProblem($"Vocabulary item {id} was not found.") : Ok(word);
     }
 }

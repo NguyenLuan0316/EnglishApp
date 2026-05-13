@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WordWave.Domain", "WordWave
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WordWave.Infrastructure", "WordWave.Infrastructure\WordWave.Infrastructure.csproj", "{04B37096-D0E0-4FE4-BE0B-DD7F7134778B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WordWave.Application.Tests", "WordWave.Application.Tests\WordWave.Application.Tests.csproj", "{FDFFA20E-4E90-4B8B-9E28-3AC2A8BC7347}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -69,6 +71,18 @@ Global
 		{04B37096-D0E0-4FE4-BE0B-DD7F7134778B}.Release|x64.Build.0 = Release|Any CPU
 		{04B37096-D0E0-4FE4-BE0B-DD7F7134778B}.Release|x86.ActiveCfg = Release|Any CPU
 		{04B37096-D0E0-4FE4-BE0B-DD7F7134778B}.Release|x86.Build.0 = Release|Any CPU
+		{FDFFA20E-4E90-4B8B-9E28-3AC2A8BC7347}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FDFFA20E-4E90-4B8B-9E28-3AC2A8BC7347}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FDFFA20E-4E90-4B8B-9E28-3AC2A8BC7347}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{FDFFA20E-4E90-4B8B-9E28-3AC2A8BC7347}.Debug|x64.Build.0 = Debug|Any CPU
+		{FDFFA20E-4E90-4B8B-9E28-3AC2A8BC7347}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{FDFFA20E-4E90-4B8B-9E28-3AC2A8BC7347}.Debug|x86.Build.0 = Debug|Any CPU
+		{FDFFA20E-4E90-4B8B-9E28-3AC2A8BC7347}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FDFFA20E-4E90-4B8B-9E28-3AC2A8BC7347}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FDFFA20E-4E90-4B8B-9E28-3AC2A8BC7347}.Release|x64.ActiveCfg = Release|Any CPU
+		{FDFFA20E-4E90-4B8B-9E28-3AC2A8BC7347}.Release|x64.Build.0 = Release|Any CPU
+		{FDFFA20E-4E90-4B8B-9E28-3AC2A8BC7347}.Release|x86.ActiveCfg = Release|Any CPU
+		{FDFFA20E-4E90-4B8B-9E28-3AC2A8BC7347}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

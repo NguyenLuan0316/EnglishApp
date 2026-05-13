@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Mvc;
 using WordWave.Application.Interfaces;
 using WordWave.Application.Interfaces.Repositories;
 using WordWave.Application.Services;
@@ -12,6 +13,22 @@ builder.Services.AddDbContext<AppDbContext>(opt =>
     opt.UseNpgsql(builder.Configuration.GetConnectionString("Supabase")));
 
 builder.Services.AddControllers();
+builder.Services.Configure<ApiBehaviorOptions>(opt =>
+{
+    opt.InvalidModelStateResponseFactory = context =>
+    {
+        var details = new ValidationProblemDetails(context.ModelState)
+        {
+            Type = "https://httpstatuses.com/400",
+            Title = "Validation Failed",
+            Status = StatusCodes.Status400BadRequest,
+            Detail = "One or more validation errors occurred.",
+            Instance = context.HttpContext.Request.Path
+        };
+        details.Extensions["traceId"] = context.HttpContext.TraceIdentifier;
+        return new BadRequestObjectResult(details);
+    };
+});
 builder.Services.AddProblemDetails();
 builder.Services.AddCors(opt =>
     opt.AddDefaultPolicy(p =>
@@ -56,6 +73,37 @@ app.UseExceptionHandler(exceptionApp =>
 });
 
 app.UseCors();
+app.UseStatusCodePages(async statusContext =>
+{
+    var response = statusContext.HttpContext.Response;
+    if (response.HasStarted || response.StatusCode < 400)
+    {
+        return;
+    }
+
+    if (!string.IsNullOrWhiteSpace(response.ContentType))
+    {
+        return;
+    }
+
+    response.ContentType = "application/problem+json";
+    var title = response.StatusCode switch
+    {
+        401 => "Unauthorized",
+        403 => "Forbidden",
+        404 => "Resource Not Found",
+        _ => "Request Failed"
+    };
+
+    await response.WriteAsJsonAsync(new ProblemDetails
+    {
+        Type = $"https://httpstatuses.com/{response.StatusCode}",
+        Title = title,
+        Status = response.StatusCode,
+        Detail = $"HTTP {response.StatusCode} at {statusContext.HttpContext.Request.Path}",
+        Instance = statusContext.HttpContext.Request.Path
+    });
+});
 app.MapControllers();
 
 // Health check

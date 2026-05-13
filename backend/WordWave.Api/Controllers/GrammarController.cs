@@ -6,7 +6,7 @@ namespace WordWave.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class GrammarController : ControllerBase
+public class GrammarController : ApiControllerBase
 {
     private readonly IGrammarService _service;
 
@@ -26,8 +26,6 @@ public class GrammarController : ControllerBase
     public async Task<IActionResult> GetById(int id)
     {
         var lesson = await _service.GetByIdAsync(id);
-        return lesson is null
-            ? NotFound(new { error = "Not found" })
-            : Ok(lesson);
+        return lesson is null ? NotFoundProblem($"Grammar lesson {id} was not found.") : Ok(lesson);
     }
 }
