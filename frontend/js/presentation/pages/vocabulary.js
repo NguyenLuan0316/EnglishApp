@@ -1,12 +1,9 @@
 // wordwave/frontend/js/pages/vocabulary.js
-import { api }          from '../api.js';
-import { speak, toast, badgeClass } from '../utils.js';
+import { topicLabel } from '../../domain/vocabulary.js';
+import { api } from '../../infrastructure/api/apiClient.js';
+import { speak, toast, badgeClass } from '../../shared/utils.js';
 
 let allWords = [], filtered = [], displayCount = 20;
-
-const TOPIC_LABELS = { daily:'Đời sống', food:'Ẩm thực', travel:'Du lịch', work:'Công việc',
-  technology:'Công nghệ', health:'Sức khỏe', education:'Giáo dục', science:'Khoa học',
-  society:'Xã hội', shopping:'Mua sắm' };
 
 export async function initVocabulary() {
   // Load tất cả (có thể dùng filter từ API)
@@ -25,7 +22,7 @@ export async function initVocabulary() {
   if (sel && sel.options.length <= 1) {
     topics.forEach(t => {
       const o = document.createElement('option');
-      o.value = t; o.textContent = TOPIC_LABELS[t] || t;
+      o.value = t; o.textContent = topicLabel(t);
       sel.appendChild(o);
     });
   }
@@ -33,7 +30,7 @@ export async function initVocabulary() {
   // Topic pills
   const pillsEl = document.getElementById('topic-filter-pills');
   if (pillsEl) pillsEl.innerHTML = topics.map(t =>
-    `<div class="topic-pill" id="pill-${t}" onclick="setTopicFilter('${t}')">${TOPIC_LABELS[t]||t}</div>`
+    `<div class="topic-pill" id="pill-${t}" onclick="setTopicFilter('${t}')">${topicLabel(t)}</div>`
   ).join('');
 
   filterVocab();

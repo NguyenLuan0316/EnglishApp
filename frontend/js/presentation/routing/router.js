@@ -1,16 +1,16 @@
 // wordwave/frontend/js/router.js
-import { initDashboard }  from './pages/dashboard.js';
-import { initVocabulary } from './pages/vocabulary.js';
-import { initGrammar }    from './pages/grammar.js';
-import { initPatterns }   from './pages/patterns.js';
-import { initFlashcard }  from './pages/flashcard.js';
-import { initQuiz }       from './pages/quiz.js';
-import { initMatching }   from './pages/matching.js';
-import { initBuilder }    from './pages/builder.js';
-import { initFillBlank }  from './pages/fillblank.js';
-import { initListening }  from './pages/listening.js';
-import { initReview }     from './pages/review.js';
-import { initProgress }   from './pages/progress.js';
+import { initDashboard }  from '../pages/dashboard.js';
+import { initVocabulary } from '../pages/vocabulary.js';
+import { initGrammar }    from '../pages/grammar.js';
+import { initPatterns }   from '../pages/patterns.js';
+import { initFlashcard }  from '../pages/flashcard.js';
+import { initQuiz }       from '../pages/quiz.js';
+import { initMatching }   from '../pages/matching.js';
+import { initBuilder }    from '../pages/builder.js';
+import { initFillBlank }  from '../pages/fillblank.js';
+import { initListening }  from '../pages/listening.js';
+import { initReview }     from '../pages/review.js';
+import { initProgress }   from '../pages/progress.js';
 
 const PAGES = {
   dashboard:  { title: 'Dashboard',         init: initDashboard  },

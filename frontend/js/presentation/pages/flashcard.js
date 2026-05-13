@@ -1,7 +1,7 @@
 // wordwave/frontend/js/pages/flashcard.js
-import { api }                      from '../api.js';
-import { state }                    from '../state.js';
-import { shuffle, speak, toast, confetti } from '../utils.js';
+import { state } from '../../application/state/appState.js';
+import { api } from '../../infrastructure/api/apiClient.js';
+import { shuffle, speak, toast, confetti } from '../../shared/utils.js';
 
 export async function initFlashcard() {
   const level = document.getElementById('fc-level')?.value || '';

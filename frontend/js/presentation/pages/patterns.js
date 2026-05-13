@@ -1,6 +1,6 @@
 // wordwave/frontend/js/pages/patterns.js
-import { api }   from '../api.js';
-import { speak, toast } from '../utils.js';
+import { api } from '../../infrastructure/api/apiClient.js';
+import { speak, toast } from '../../shared/utils.js';
 
 export async function initPatterns() {
   let patterns = [];

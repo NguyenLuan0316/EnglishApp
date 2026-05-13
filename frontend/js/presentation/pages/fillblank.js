@@ -1,6 +1,6 @@
 // wordwave/frontend/js/pages/fillblank.js
-import { state } from '../state.js';
-import { shuffle, toast } from '../utils.js';
+import { state } from '../../application/state/appState.js';
+import { shuffle, toast } from '../../shared/utils.js';
 
 const QUESTIONS = [
   { sentence:'I ___ to school yesterday.',     answer:'went',       options:['go','went','goes','going'],        hint:"Past tense của 'go'" },

@@ -1,6 +1,6 @@
 // wordwave/frontend/js/pages/grammar.js
-import { api }   from '../api.js';
-import { toast, badgeClass } from '../utils.js';
+import { api } from '../../infrastructure/api/apiClient.js';
+import { toast, badgeClass } from '../../shared/utils.js';
 
 let lessons = [];
 

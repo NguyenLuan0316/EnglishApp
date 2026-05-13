@@ -1,7 +1,7 @@
 // wordwave/frontend/js/pages/quiz.js
-import { api }                 from '../api.js';
-import { state }               from '../state.js';
-import { shuffle, toast, confetti } from '../utils.js';
+import { state } from '../../application/state/appState.js';
+import { api } from '../../infrastructure/api/apiClient.js';
+import { shuffle, toast, confetti } from '../../shared/utils.js';
 
 let allPool = [];
 

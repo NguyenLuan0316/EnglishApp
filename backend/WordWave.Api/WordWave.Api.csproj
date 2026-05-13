@@ -23,4 +23,7 @@
     <ProjectReference Include="..\WordWave.Application\WordWave.Application.csproj" />
     <ProjectReference Include="..\WordWave.Infrastructure\WordWave.Infrastructure.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Data\" />
+  </ItemGroup>
 </Project>

@@ -388,16 +388,16 @@
 </div>
 
 <script type="module">
-import { navigate, toggleSidebar } from './js/router.js';
-import { filterVocab, setTopicFilter, loadMoreVocab } from './js/pages/vocabulary.js';
-import { filterGrammarByLevel } from './js/pages/grammar.js';
-import { initFlashcard }  from './js/pages/flashcard.js';
-import { initQuiz }       from './js/pages/quiz.js';
-import { initMatching }   from './js/pages/matching.js';
-import { initBuilder }    from './js/pages/builder.js';
-import { initFillBlank }  from './js/pages/fillblank.js';
-import { api }            from './js/api.js';
-import { badgeClass }     from './js/utils.js';
+import { navigate, toggleSidebar } from './js/presentation/routing/router.js';
+import { filterVocab, setTopicFilter, loadMoreVocab } from './js/presentation/pages/vocabulary.js';
+import { filterGrammarByLevel } from './js/presentation/pages/grammar.js';
+import { initFlashcard }  from './js/presentation/pages/flashcard.js';
+import { initQuiz }       from './js/presentation/pages/quiz.js';
+import { initMatching }   from './js/presentation/pages/matching.js';
+import { initBuilder }    from './js/presentation/pages/builder.js';
+import { initFillBlank }  from './js/presentation/pages/fillblank.js';
+import { api }            from './js/infrastructure/api/apiClient.js';
+import { badgeClass }     from './js/shared/utils.js';
 
 // Expose to window for onclick handlers in HTML
 window.navigate           = navigate;

@@ -1,7 +1,7 @@
 // wordwave/frontend/js/pages/listening.js
-import { api }           from '../api.js';
-import { state }         from '../state.js';
-import { speak, toast }  from '../utils.js';
+import { state } from '../../application/state/appState.js';
+import { api } from '../../infrastructure/api/apiClient.js';
+import { speak, toast } from '../../shared/utils.js';
 
 let wordPool = [];
 

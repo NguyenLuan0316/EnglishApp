@@ -1,10 +1,8 @@
 // wordwave/frontend/js/pages/dashboard.js
-import { api }   from '../api.js';
-import { navigate } from '../router.js';
-import { levelColor } from '../utils.js';
-
-const TOPIC_LABELS = { daily:'Đời sống', food:'Ẩm thực', travel:'Du lịch', work:'Công việc',
-  technology:'Công nghệ', health:'Sức khỏe', education:'Giáo dục', science:'Khoa học', society:'Xã hội' };
+import { LEVELS, TOPIC_LABELS } from '../../domain/vocabulary.js';
+import { api } from '../../infrastructure/api/apiClient.js';
+import { navigate } from '../routing/router.js';
+import { levelColor } from '../../shared/utils.js';
 
 export async function initDashboard() {
   // Word of day
@@ -23,10 +21,9 @@ export async function initDashboard() {
   } catch(e) { console.warn('Dashboard: API offline, using static data'); }
 
   // Progress bars
-  const levels = ['A1','A2','B1','B2','C1'];
   const mock   = { A1:{l:42,t:100}, A2:{l:31,t:100}, B1:{l:28,t:100}, B2:{l:15,t:80}, C1:{l:5,t:70} };
   const barEl  = document.getElementById('level-progress-bars');
-  if (barEl) barEl.innerHTML = levels.map(lv => {
+  if (barEl) barEl.innerHTML = LEVELS.map(lv => {
     const d = mock[lv];
     const pct = Math.round(d.l / d.t * 100);
     return `<div style="margin-bottom:10px;">

@@ -1,6 +1,6 @@
 // wordwave/frontend/js/pages/builder.js
-import { state }                    from '../state.js';
-import { shuffle, toast, confetti } from '../utils.js';
+import { state } from '../../application/state/appState.js';
+import { shuffle, toast, confetti } from '../../shared/utils.js';
 
 const SENTENCES = [
   { vi:'Tôi đang học tiếng Anh.',   words:['I','am','studying','English','.'],       extra:['She','He','learning','French','!'] },
