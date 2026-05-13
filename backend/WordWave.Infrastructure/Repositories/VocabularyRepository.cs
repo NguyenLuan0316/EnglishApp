@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using WordWave.Application.Contracts.Vocabulary;
 using WordWave.Application.Interfaces.Repositories;
 using WordWave.Domain.Models;
 using WordWave.Infrastructure.Data;
@@ -10,20 +11,24 @@ public class VocabularyRepository : IVocabularyRepository
     private readonly AppDbContext _db;
     public VocabularyRepository(AppDbContext db) => _db = db;
 
-    public async Task<(int total, List<VocabWord> data)> GetPagedAsync(string? level, string? topic, string? search, int page = 1, int limit = 20)
+    public async Task<(int total, List<VocabWord> data)> GetPagedAsync(VocabularyQuery request)
     {
-        var query = _db.Vocabulary.AsQueryable();
-        if (!string.IsNullOrEmpty(level)) query = query.Where(w => w.Level == level);
-        if (!string.IsNullOrEmpty(topic)) query = query.Where(w => w.Topic == topic);
-        if (!string.IsNullOrEmpty(search)) query = query.Where(w =>
-            w.Word.ToLower().Contains(search.ToLower()) ||
-            w.Meaning.ToLower().Contains(search.ToLower()));
+        var source = _db.Vocabulary.AsQueryable();
+        if (!string.IsNullOrWhiteSpace(request.Level)) source = source.Where(w => w.Level == request.Level);
+        if (!string.IsNullOrWhiteSpace(request.Topic)) source = source.Where(w => w.Topic == request.Topic);
+        if (!string.IsNullOrWhiteSpace(request.Search))
+        {
+            var search = request.Search.Trim().ToLower();
+            source = source.Where(w =>
+                w.Word.ToLower().Contains(search) ||
+                w.Meaning.ToLower().Contains(search));
+        }
 
-        var total = await query.CountAsync();
-        var data = await query
+        var total = await source.CountAsync();
+        var data = await source
             .OrderBy(w => w.Id)
-            .Skip((page - 1) * limit)
-            .Take(limit)
+            .Skip((request.Page - 1) * request.Limit)
+            .Take(request.Limit)
             .ToListAsync();
 
         return (total, data);

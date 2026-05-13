@@ -1,3 +1,4 @@
+using WordWave.Application.Contracts.Grammar;
 using WordWave.Application.Interfaces;
 using WordWave.Application.Interfaces.Repositories;
 using WordWave.Domain.Models;
@@ -13,7 +14,7 @@ public class GrammarService : IGrammarService
         _repo = repo;
     }
 
-    public async Task<List<GrammarLesson>> GetAllAsync(string? level)
+    public async Task<List<GrammarLessonDto>> GetAllAsync(string? level)
     {
         var data = await _repo.GetAllAsync();
 
@@ -22,11 +23,25 @@ public class GrammarService : IGrammarService
             data = data.Where(g => g.Level.Equals(level, StringComparison.OrdinalIgnoreCase)).ToList();
         }
 
-        return data;
+        return data.Select(Map).ToList();
     }
 
-    public async Task<GrammarLesson?> GetByIdAsync(int id)
+    public async Task<GrammarLessonDto?> GetByIdAsync(int id)
     {
-        return await _repo.GetByIdAsync(id);
+        var lesson = await _repo.GetByIdAsync(id);
+        return lesson is null ? null : Map(lesson);
+    }
+
+    private static GrammarLessonDto Map(GrammarLesson lesson)
+    {
+        return new GrammarLessonDto(
+            lesson.Id,
+            lesson.Title,
+            lesson.Level,
+            lesson.Description,
+            lesson.Formula,
+            lesson.Tips,
+            lesson.GrammarExamples.Select(x => new GrammarExampleDto(x.En, x.Vi)).ToList()
+        );
     }
 }

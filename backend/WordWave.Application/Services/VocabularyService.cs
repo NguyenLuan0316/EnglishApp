@@ -1,3 +1,5 @@
+using WordWave.Application.Contracts.Paging;
+using WordWave.Application.Contracts.Vocabulary;
 using WordWave.Application.Interfaces;
 using WordWave.Application.Interfaces.Repositories;
 using WordWave.Domain.Models;
@@ -10,10 +12,10 @@ public class VocabularyService : IVocabularyService
 
     public VocabularyService(IVocabularyRepository repo) => _repo = repo;
 
-    public async Task<(int total, int page, int limit, List<VocabWord> data)> GetPagedAsync(string? level, string? topic, string? search, int page = 1, int limit = 20)
+    public async Task<PagedResult<VocabWord>> GetPagedAsync(VocabularyQuery query)
     {
-        var (total, data) = await _repo.GetPagedAsync(level, topic, search, page, limit);
-        return (total, page, limit, data);
+        var (total, data) = await _repo.GetPagedAsync(query);
+        return new PagedResult<VocabWord>(total, query.Page, query.Limit, data);
     }
 
     public Task<List<VocabWord>> GetRandomAsync(string? level, string? topic, int count = 10) => _repo.GetRandomAsync(level, topic, count);

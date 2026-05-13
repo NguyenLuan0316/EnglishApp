@@ -1,3 +1,4 @@
+using WordWave.Application.Contracts.Review;
 using WordWave.Application.Interfaces;
 using WordWave.Application.Interfaces.Repositories;
 using WordWave.Domain.Models;
@@ -39,16 +40,19 @@ public class ReviewService : IReviewService
         return all.Where(w => GetOrInit(w.Id).NextReview <= now).Take(max).ToList();
     }
 
-    public Task<object> SubmitAsync(SubmitRequest req)
+    public Task<SubmitReviewResult> SubmitAsync(SubmitReviewRequest req)
     {
         var p = GetOrInit(req.WordId);
         if (req.Correct) p.CorrectCount++; else p.WrongCount++;
         p.LastReviewed = DateTime.UtcNow;
         p.NextReview   = CalcNextReview(p.CorrectCount, p.WrongCount);
-        return Task.FromResult<object>(new { success = true, progress = p });
+        return Task.FromResult(new SubmitReviewResult(
+            true,
+            new ReviewWordProgressDto(p.WordId, p.CorrectCount, p.WrongCount, p.NextReview, p.LastReviewed)
+        ));
     }
 
-    public async Task<object> GetProgressAsync()
+    public async Task<ReviewProgressDto> GetProgressAsync()
     {
         var all = await _vocabRepo.GetAllAsync();
         var total   = all.Count;
@@ -58,12 +62,11 @@ public class ReviewService : IReviewService
             .GroupBy(w => w.Level)
             .ToDictionary(
                 g => g.Key,
-                g => new
-                {
-                    Total   = g.Count(),
-                    Learned = g.Count(w => _store.TryGetValue(w.Id, out var p) && p.CorrectCount > 0)
-                });
+                g => new LevelProgressDto(
+                    g.Count(),
+                    g.Count(w => _store.TryGetValue(w.Id, out var p) && p.CorrectCount > 0)
+                ));
 
-        return new { total, learned, byLevel };
+        return new ReviewProgressDto(total, learned, byLevel);
     }
 }

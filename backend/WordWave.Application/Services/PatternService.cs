@@ -1,3 +1,4 @@
+using WordWave.Application.Contracts.Patterns;
 using WordWave.Application.Interfaces;
 using WordWave.Application.Interfaces.Repositories;
 using WordWave.Domain.Models;
@@ -9,7 +10,26 @@ public class PatternService : IPatternService
     private readonly IPatternRepository _repo;
     public PatternService(IPatternRepository repo) => _repo = repo;
 
-    public Task<List<SentencePattern>> GetAllAsync() => _repo.GetAllAsync();
+    public async Task<List<SentencePatternDto>> GetAllAsync()
+    {
+        var patterns = await _repo.GetAllAsync();
+        return patterns.Select(Map).ToList();
+    }
 
-    public Task<SentencePattern?> GetByIdAsync(int id) => _repo.GetByIdAsync(id);
+    public async Task<SentencePatternDto?> GetByIdAsync(int id)
+    {
+        var pattern = await _repo.GetByIdAsync(id);
+        return pattern is null ? null : Map(pattern);
+    }
+
+    private static SentencePatternDto Map(SentencePattern pattern)
+    {
+        return new SentencePatternDto(
+            pattern.Id,
+            pattern.Sentence,
+            pattern.Meaning,
+            pattern.Explanation,
+            pattern.Examples
+        );
+    }
 }

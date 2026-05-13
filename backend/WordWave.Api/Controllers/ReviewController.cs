@@ -1,7 +1,7 @@
 // wordwave/backend/WordWave.Api/Controllers/ReviewController.cs
 using Microsoft.AspNetCore.Mvc;
+using WordWave.Application.Contracts.Review;
 using WordWave.Application.Interfaces;
-using WordWave.Domain.Models;
 
 namespace WordWave.Api.Controllers;
 
@@ -18,7 +18,7 @@ public class ReviewController : ControllerBase
 
     // POST /api/review/submit  body: { wordId, correct }
     [HttpPost("submit")]
-    public async Task<IActionResult> Submit([FromBody] SubmitRequest req) => Ok(await _service.SubmitAsync(req));
+    public async Task<IActionResult> Submit([FromBody] SubmitReviewRequest req) => Ok(await _service.SubmitAsync(req));
 
     // GET /api/review/progress  — tổng tiến độ
     [HttpGet("progress")]

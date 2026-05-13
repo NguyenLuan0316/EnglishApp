@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using WordWave.Application.Interfaces;
+using WordWave.Api.Models.Requests;
 
 namespace WordWave.Api.Controllers;
 
@@ -15,9 +16,9 @@ public class GrammarController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAll([FromQuery] string? level)
+    public async Task<IActionResult> GetAll([FromQuery] GrammarQueryRequest req)
     {
-        var data = await _service.GetAllAsync(level);
+        var data = await _service.GetAllAsync(req.Level);
         return Ok(data);
     }
 

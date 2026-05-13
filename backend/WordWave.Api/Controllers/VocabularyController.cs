@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
+using WordWave.Application.Contracts.Vocabulary;
 using WordWave.Application.Interfaces;
+using WordWave.Api.Models.Requests;
 
 namespace WordWave.Api.Controllers;
 
@@ -12,25 +14,17 @@ public class VocabularyController : ControllerBase
 
     // GET /api/vocabulary?level=A1&topic=office&search=manage&page=1&limit=20
     [HttpGet]
-    public async Task<IActionResult> GetAll(
-        [FromQuery] string? level,
-        [FromQuery] string? topic,
-        [FromQuery] string? search,
-        [FromQuery] int page = 1,
-        [FromQuery] int limit = 20)
+    public async Task<IActionResult> GetAll([FromQuery] VocabularyQueryRequest req)
     {
-        var result = await _service.GetPagedAsync(level, topic, search, page, limit);
-        return Ok(new { total = result.total, page = result.page, limit = result.limit, data = result.data });
+        var result = await _service.GetPagedAsync(new VocabularyQuery(req.Level, req.Topic, req.Search, req.Page, req.Limit));
+        return Ok(new { total = result.Total, page = result.Page, limit = result.Limit, data = result.Data });
     }
 
     // GET /api/vocabulary/random?level=B1&count=10
     [HttpGet("random")]
-    public async Task<IActionResult> GetRandom(
-        [FromQuery] string? level,
-        [FromQuery] string? topic,
-        [FromQuery] int count = 10)
+    public async Task<IActionResult> GetRandom([FromQuery] RandomVocabularyRequest req)
     {
-        var result = await _service.GetRandomAsync(level, topic, count);
+        var result = await _service.GetRandomAsync(req.Level, req.Topic, req.Count);
         return Ok(result);
     }
 
@@ -44,4 +38,3 @@ public class VocabularyController : ControllerBase
         return word is null ? NotFound() : Ok(word);
     }
 }
-

@@ -1,9 +1,9 @@
-using WordWave.Domain.Models;
+using WordWave.Application.Contracts.Patterns;
 
 namespace WordWave.Application.Interfaces;
 
 public interface IPatternService
 {
-    Task<List<SentencePattern>> GetAllAsync();
-    Task<SentencePattern?> GetByIdAsync(int id);
+    Task<List<SentencePatternDto>> GetAllAsync();
+    Task<SentencePatternDto?> GetByIdAsync(int id);
 }

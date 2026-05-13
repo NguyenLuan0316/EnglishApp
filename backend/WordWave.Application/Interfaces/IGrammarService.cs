@@ -1,9 +1,9 @@
-using WordWave.Domain.Models;
+using WordWave.Application.Contracts.Grammar;
 
 namespace WordWave.Application.Interfaces;
 
 public interface IGrammarService
 {
-    Task<List<GrammarLesson>> GetAllAsync(string? level);
-    Task<GrammarLesson?> GetByIdAsync(int id);
+    Task<List<GrammarLessonDto>> GetAllAsync(string? level);
+    Task<GrammarLessonDto?> GetByIdAsync(int id);
 }

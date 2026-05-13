@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using System;
 using WordWave.Application.Interfaces.Repositories;
 using WordWave.Domain.Models;
 using WordWave.Infrastructure.Data;
@@ -17,11 +16,15 @@ public class GrammarRepository : IGrammarRepository
 
     public async Task<List<GrammarLesson>> GetAllAsync()
     {
-        return await _db.GrammarLessons.ToListAsync();
+        return await _db.GrammarLessons
+            .Include(x => x.GrammarExamples)
+            .ToListAsync();
     }
 
     public async Task<GrammarLesson?> GetByIdAsync(int id)
     {
-        return await _db.GrammarLessons.FirstOrDefaultAsync(x => x.Id == id);
+        return await _db.GrammarLessons
+            .Include(x => x.GrammarExamples)
+            .FirstOrDefaultAsync(x => x.Id == id);
     }
 }
