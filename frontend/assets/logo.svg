@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="WordWave">
+  <defs>
+    <linearGradient id="wave" x1="18" y1="18" x2="110" y2="110" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#63b3ed"/>
+      <stop offset="1" stop-color="#4fd1c5"/>
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="28" fill="#111827"/>
+  <path d="M27 76c13 0 13-18 26-18s13 18 26 18 13-18 26-18" fill="none" stroke="url(#wave)" stroke-width="12" stroke-linecap="round"/>
+  <path d="M30 92h68" fill="none" stroke="#f6ad55" stroke-width="10" stroke-linecap="round" opacity=".95"/>
+  <path d="M38 36h52" fill="none" stroke="#e2e8f0" stroke-width="9" stroke-linecap="round" opacity=".95"/>
+</svg>

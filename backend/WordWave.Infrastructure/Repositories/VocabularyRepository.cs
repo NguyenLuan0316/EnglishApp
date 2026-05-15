@@ -42,7 +42,12 @@ public class VocabularyRepository : IVocabularyRepository
         return await query.OrderBy(_ => EF.Functions.Random()).Take(count).ToListAsync();
     }
 
-    public Task<List<string>> GetTopicsAsync() => _db.Vocabulary.Select(w => w.Topic).Distinct().ToListAsync();
+    public Task<List<string>> GetTopicsAsync() => _db.Vocabulary
+        .Where(w => !string.IsNullOrWhiteSpace(w.Topic))
+        .Select(w => w.Topic)
+        .Distinct()
+        .OrderBy(topic => topic)
+        .ToListAsync();
 
     public Task<VocabWord?> GetByIdAsync(int id) => _db.Vocabulary.FindAsync(id).AsTask().ContinueWith(t => (VocabWord?)t.Result);
 

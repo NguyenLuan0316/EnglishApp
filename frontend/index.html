@@ -4,6 +4,8 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>WordWave – Học Tiếng Anh</title>
+<link rel="icon" href="./assets/favicon.svg" type="image/svg+xml"/>
+<link rel="apple-touch-icon" href="./assets/logo.svg"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
@@ -82,6 +84,13 @@
       <div class="nav-item" data-page="progress" onclick="navigate('progress')">
         <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
         Thống Kê
+      </div>
+    </div>
+    <div class="nav-group">
+      <div class="nav-label">Admin</div>
+      <div class="nav-item" data-page="toeicAdmin" onclick="navigate('toeicAdmin')">
+        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7h16M4 12h16M4 17h10"/></svg>
+        TOEIC Crawl
       </div>
     </div>
   </div>
@@ -176,6 +185,7 @@
       </div>
       <div class="topic-grid" id="topic-filter-pills" style="margin-bottom:16px;"></div>
       <div id="vocab-list" style="display:flex;flex-direction:column;gap:8px;"></div>
+      <div id="vocab-pagination"></div>
       <div id="vocab-load-more" style="text-align:center;margin-top:20px;display:none;">
         <button class="btn btn-secondary" onclick="loadMoreVocab()">Tải thêm từ</button>
       </div>
@@ -191,12 +201,14 @@
         <div class="tab" onclick="filterGrammarByLevel('B2')">B2+</div>
       </div>
       <div id="grammar-list" style="display:flex;flex-direction:column;gap:12px;"></div>
+      <div id="grammar-pagination"></div>
     </div>
 
     <!-- PATTERNS -->
     <div class="page fade-in" id="page-patterns">
       <p style="color:var(--text2);font-size:14px;margin-bottom:20px;">Các mẫu câu giao tiếp phổ biến trong tiếng Anh hàng ngày.</p>
       <div id="patterns-list" style="display:flex;flex-direction:column;gap:12px;"></div>
+      <div id="patterns-pagination"></div>
     </div>
 
     <!-- FLASHCARD -->
@@ -375,6 +387,50 @@
       </div>
     </div>
 
+    <!-- TOEIC ADMIN -->
+    <div class="page fade-in" id="page-toeicAdmin">
+      <div style="margin-bottom:20px;">
+        <h1 style="font-size:22px;font-weight:700;margin-bottom:6px;">TOEIC Crawl & Import</h1>
+        <p style="color:var(--text2);font-size:14px;max-width:900px;">Import dữ liệu TOEIC từ file JSON/CSV hợp lệ hoặc crawl nguồn public cho phép. Không import đề thi, audio, hình ảnh hoặc nội dung không có quyền sử dụng.</p>
+      </div>
+
+      <div class="grid-3" style="margin-bottom:16px;">
+        <form id="toeic-json-form" class="card">
+          <div class="section-title" style="margin-bottom:12px;">Import JSON</div>
+          <input id="toeic-json-file" type="file" accept=".json,application/json" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:10px;color:var(--text);font-family:var(--font);font-size:13px;margin-bottom:12px;"/>
+          <button class="btn btn-primary" data-toeic-action type="submit" style="width:100%;">Import JSON</button>
+        </form>
+
+        <form id="toeic-csv-form" class="card">
+          <div class="section-title" style="margin-bottom:12px;">Import CSV</div>
+          <input id="toeic-csv-file" type="file" accept=".csv,text/csv" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:10px;color:var(--text);font-family:var(--font);font-size:13px;margin-bottom:12px;"/>
+          <button class="btn btn-primary" data-toeic-action type="submit" style="width:100%;">Import CSV</button>
+        </form>
+
+        <form id="toeic-crawl-form" class="card">
+          <div class="section-title" style="margin-bottom:12px;">Crawl public source</div>
+          <input id="toeic-crawl-keyword" type="text" placeholder="Keyword, ví dụ: toeic" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:10px;color:var(--text);font-family:var(--font);font-size:13px;outline:none;margin-bottom:8px;"/>
+          <input id="toeic-crawl-url" type="url" placeholder="https://example.com/allowed-toeic.json" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:10px;color:var(--text);font-family:var(--font);font-size:13px;outline:none;margin-bottom:12px;"/>
+          <button class="btn btn-primary" data-toeic-action type="submit" style="width:100%;">Crawl</button>
+        </form>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="section-title" style="margin-bottom:12px;">Kết quả thao tác</div>
+          <div id="toeic-action-result" style="min-height:80px;color:var(--text3);font-size:13px;">Chưa có thao tác import/crawl.</div>
+        </div>
+        <div class="card">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;">
+            <div class="section-title">Import logs</div>
+            <button class="btn btn-ghost btn-sm" id="toeic-refresh-logs" type="button">Tải lại</button>
+          </div>
+          <div id="toeic-import-logs" style="display:flex;flex-direction:column;gap:8px;max-height:460px;overflow-y:auto;"></div>
+          <div id="toeic-import-pagination"></div>
+        </div>
+      </div>
+    </div>
+
   </div><!-- /content -->
 </main>
 
@@ -388,7 +444,7 @@
 </div>
 
 <script type="module">
-import { navigate, toggleSidebar } from './js/presentation/routing/router.js';
+import { initRouter, navigate, toggleSidebar } from './js/presentation/routing/router.js';
 import { filterVocab, setTopicFilter, loadMoreVocab } from './js/presentation/pages/vocabulary.js';
 import { filterGrammarByLevel } from './js/presentation/pages/grammar.js';
 import { initFlashcard }  from './js/presentation/pages/flashcard.js';
@@ -441,7 +497,7 @@ document.querySelectorAll('.modal-overlay').forEach(m =>
 );
 
 // Boot
-navigate('dashboard');
+initRouter();
 </script>
 </body>
 </html>

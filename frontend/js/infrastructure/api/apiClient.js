@@ -19,6 +19,15 @@ async function postJson(url, body) {
   return res.json();
 }
 
+async function postForm(url, formData) {
+  const res = await fetch(url, {
+    method: 'POST',
+    body: formData,
+  });
+  if (!res.ok) throw new Error(`API error ${res.status}`);
+  return res.json();
+}
+
 export const api = {
   // Vocabulary
   getVocab:    (params = {}) => fetchJson(`${BASE}/vocabulary?${new URLSearchParams(params)}`),
@@ -38,4 +47,24 @@ export const api = {
   getDaily:    ()       => fetchJson(`${BASE}/review/daily`),
   getProgress: ()       => fetchJson(`${BASE}/review/progress`),
   submitReview:(wordId, correct) => postJson(`${BASE}/review/submit`, { wordId, correct }),
+
+  // TOEIC admin
+  importToeicJson: (file) => {
+    const form = new FormData();
+    form.append('file', file);
+    return postForm(`${BASE}/admin/toeic/import/json`, form);
+  },
+  importToeicCsv: (file) => {
+    const form = new FormData();
+    form.append('file', file);
+    return postForm(`${BASE}/admin/toeic/import/csv`, form);
+  },
+  crawlToeic: (payload) => postJson(`${BASE}/admin/toeic/crawl`, payload),
+  getToeicImportLogs: (params = {}) => fetchJson(`${BASE}/admin/toeic/import-logs?${new URLSearchParams(params)}`),
+
+  // TOEIC user
+  getToeicTests: () => fetchJson(`${BASE}/toeic/tests`),
+  getToeicTestById: (id) => fetchJson(`${BASE}/toeic/tests/${id}`),
+  getToeicQuestions: (params = {}) => fetchJson(`${BASE}/toeic/questions?${new URLSearchParams(params)}`),
+  submitToeicTest: (id, answers) => postJson(`${BASE}/toeic/tests/${id}/submit`, { answers }),
 };

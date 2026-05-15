@@ -6,6 +6,7 @@ using WordWave.Application.Interfaces.Repositories;
 using WordWave.Application.Services;
 using WordWave.Infrastructure.Data;
 using WordWave.Infrastructure.Repositories;
+using WordWave.Infrastructure.Toeic;
 
 var builder = WebApplication.CreateBuilder(args);
 AppContext.SetSwitch("System.Net.DisableIPv6", true);
@@ -51,6 +52,14 @@ builder.Services.AddScoped<IVocabularyRepository, VocabularyRepository>();
 builder.Services.AddScoped<IPatternService, PatternService>();
 builder.Services.AddScoped<IPatternRepository, PatternRepository>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
+builder.Services.AddScoped<IToeicService, ToeicService>();
+builder.Services.AddScoped<IToeicImportService, ToeicImportService>();
+builder.Services.AddScoped<IToeicImportPackageWriter, ToeicImportPackageWriter>();
+builder.Services.AddScoped<IToeicRepository, ToeicRepository>();
+builder.Services.AddScoped<IToeicImporter, JsonToeicImporter>();
+builder.Services.AddScoped<IToeicImporter, CsvToeicImporter>();
+builder.Services.AddScoped<IToeicImporter, AiGeneratedToeicImporter>();
+builder.Services.AddHttpClient<IToeicDataSourceCrawler, WebsiteToeicCrawler>();
 
 var app = builder.Build();
 

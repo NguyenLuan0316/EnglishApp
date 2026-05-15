@@ -104,6 +104,16 @@ button{font-family:var(--font);cursor:pointer;border:none;outline:none;}
   background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;transition:all .15s;}
 .topic-pill:hover,.topic-pill.active{background:rgba(99,179,237,.12);border-color:var(--border2);color:var(--accent);}
 
+/* PAGINATION */
+.pagination{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:18px;flex-wrap:wrap;}
+.pagination-summary{font-size:12px;color:var(--text3);}
+.pagination-controls{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.pagination-btn{min-width:34px;height:34px;padding:0 10px;border-radius:var(--r2);background:var(--bg3);
+  border:1px solid var(--border);color:var(--text2);font-size:12px;font-weight:600;transition:all .15s;}
+.pagination-btn:hover:not(:disabled),.pagination-btn.active{background:rgba(99,179,237,.12);border-color:var(--border2);color:var(--accent);}
+.pagination-btn:disabled{opacity:.45;cursor:not-allowed;}
+.pagination-ellipsis{color:var(--text3);font-size:12px;padding:0 4px;}
+
 /* WORD CARD */
 .word-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);
   padding:16px 20px;display:flex;align-items:flex-start;gap:16px;transition:all .15s;cursor:pointer;}

@@ -7,7 +7,7 @@ import { filterGrammarByLevel } from './pages/grammar.js';
 import { initMatching } from './pages/matching.js';
 import { initQuiz } from './pages/quiz.js';
 import { filterVocab, loadMoreVocab, setTopicFilter } from './pages/vocabulary.js';
-import { navigate, toggleSidebar } from './routing/router.js';
+import { initRouter, navigate, toggleSidebar } from './routing/router.js';
 
 window.navigate = navigate;
 window.toggleSidebar = toggleSidebar;
@@ -53,4 +53,4 @@ document.querySelectorAll('.modal-overlay').forEach(modal =>
   })
 );
 
-navigate('dashboard');
+initRouter();

@@ -1,22 +1,45 @@
 // wordwave/frontend/js/pages/grammar.js
 import { api } from '../../infrastructure/api/apiClient.js';
+import { renderPagination } from '../components/pagination.js';
 import { toast, badgeClass } from '../../shared/utils.js';
 
 let lessons = [];
+let currentLevel = 'all';
+let currentPage = 1;
+const pageSize = 6;
 
 export async function initGrammar() {
   if (lessons.length === 0) {
     try { lessons = await api.getGrammar(); }
     catch(e) { toast('Không thể tải ngữ pháp. Kiểm tra kết nối API.', 'error'); return; }
   }
-  renderGrammar(lessons);
+  renderGrammarPage(1);
 }
 
 export function filterGrammarByLevel(level) {
   document.querySelectorAll('#page-grammar .tab').forEach(t => t.classList.remove('active'));
-  event.target.classList.add('active');
-  const filtered = level === 'all' ? lessons : lessons.filter(g => g.level === level);
-  renderGrammar(filtered);
+  window.event?.target?.classList.add('active');
+  currentLevel = level;
+  renderGrammarPage(1);
+}
+
+function getFilteredLessons() {
+  return currentLevel === 'all' ? lessons : lessons.filter(g => g.level === currentLevel);
+}
+
+function renderGrammarPage(page) {
+  const data = getFilteredLessons();
+  const totalPages = Math.max(1, Math.ceil(data.length / pageSize));
+  currentPage = Math.min(Math.max(page, 1), totalPages);
+  const start = (currentPage - 1) * pageSize;
+  renderGrammar(data.slice(start, start + pageSize));
+
+  renderPagination('grammar-pagination', {
+    page: currentPage,
+    total: data.length,
+    limit: pageSize,
+    onPageChange: renderGrammarPage,
+  });
 }
 
 function renderGrammar(data) {
