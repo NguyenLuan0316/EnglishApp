@@ -58,7 +58,9 @@ Contracts/Grammar/
  GrammarLessonDto.cs
 Contracts/
  Paging/PagedResult.cs
- Patterns/SentencePatternDto.cs
+ Patterns/
+  PatternQuery.cs
+  SentencePatternDto.cs
  Review/
   LevelProgressDto.cs
   ReviewProgressDto.cs

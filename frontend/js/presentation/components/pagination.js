@@ -6,27 +6,37 @@ export function renderPagination(containerId, options) {
   const limit = Math.max(1, Number(options.limit || 20));
   const totalPages = Math.max(1, Math.ceil(total / limit));
   const page = clamp(Number(options.page || 1), 1, totalPages);
-
-  if (total <= limit) {
-    container.innerHTML = '';
-    return;
-  }
+  const pageSizeOptions = normalizePageSizeOptions(options.pageSizeOptions, limit);
+  const canChangePageSize = typeof options.onPageSizeChange === 'function';
 
   const pages = pageWindow(page, totalPages);
   const from = total === 0 ? 0 : ((page - 1) * limit) + 1;
   const to = Math.min(page * limit, total);
-
-  container.innerHTML = `
-    <div class="pagination">
-      <div class="pagination-summary">Hiển thị ${from}-${to} / ${total}</div>
-      <div class="pagination-controls">
+  const controls = totalPages > 1
+    ? `<div class="pagination-controls">
         <button type="button" class="pagination-btn" data-page="${page - 1}" ${page === 1 ? 'disabled' : ''}>Trước</button>
         ${pages.map(item => item === '...'
           ? '<span class="pagination-ellipsis">...</span>'
           : `<button type="button" class="pagination-btn${item === page ? ' active' : ''}" data-page="${item}">${item}</button>`
         ).join('')}
         <button type="button" class="pagination-btn" data-page="${page + 1}" ${page === totalPages ? 'disabled' : ''}>Sau</button>
+      </div>`
+    : '';
+
+  container.innerHTML = `
+    <div class="pagination">
+      <div class="pagination-meta">
+        <div class="pagination-summary">Hiển thị ${from}-${to} / ${total}</div>
+        ${canChangePageSize ? `
+          <label class="pagination-size">
+            <span>Số lượng/trang</span>
+            <select data-page-size>
+              ${pageSizeOptions.map(size => `<option value="${size}" ${size === limit ? 'selected' : ''}>${size}</option>`).join('')}
+            </select>
+          </label>
+        ` : ''}
       </div>
+      ${controls}
     </div>
   `;
 
@@ -38,6 +48,18 @@ export function renderPagination(containerId, options) {
       }
     });
   });
+
+  container.querySelector('[data-page-size]')?.addEventListener('change', event => {
+    options.onPageSizeChange?.(Number(event.target.value));
+  });
+}
+
+function normalizePageSizeOptions(values, currentLimit) {
+  const defaults = [6, 10, 20, 50, 100];
+  return [...new Set([...(values || defaults), currentLimit]
+    .map(value => Number(value))
+    .filter(value => Number.isFinite(value) && value > 0))]
+    .sort((a, b) => a - b);
 }
 
 function pageWindow(page, totalPages) {

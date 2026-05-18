@@ -41,7 +41,7 @@ export const api = {
   getGrammarById:(id)         => fetchJson(`${BASE}/grammar/${id}`),
 
   // Patterns
-  getPatterns: () => fetchJson(`${BASE}/patterns`),
+  getPatterns: (params = {}) => fetchJson(`${BASE}/patterns?${new URLSearchParams(params)}`),
 
   // Review
   getDaily:    ()       => fetchJson(`${BASE}/review/daily`),

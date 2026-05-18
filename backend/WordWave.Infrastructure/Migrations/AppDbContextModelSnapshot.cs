@@ -36,9 +36,6 @@ namespace WordWave.Infrastructure.Migrations
                         .HasColumnType("text")
                         .HasColumnName("en");
 
-                    b.Property<int?>("GrammarLessonId")
-                        .HasColumnType("integer");
-
                     b.Property<int>("LessonId")
                         .HasColumnType("integer")
                         .HasColumnName("lesson_id");
@@ -49,8 +46,6 @@ namespace WordWave.Infrastructure.Migrations
                         .HasColumnName("vi");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("GrammarLessonId");
 
                     b.ToTable("grammar_examples", (string)null);
                 });
@@ -131,7 +126,14 @@ namespace WordWave.Infrastructure.Migrations
                         .HasColumnType("text")
                         .HasColumnName("sentence");
 
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("type");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("Type");
 
                     b.ToTable("sentence_patterns", (string)null);
                 });
@@ -1178,7 +1180,9 @@ namespace WordWave.Infrastructure.Migrations
                 {
                     b.HasOne("WordWave.Domain.Models.GrammarLesson", null)
                         .WithMany("GrammarExamples")
-                        .HasForeignKey("GrammarLessonId");
+                        .HasForeignKey("LessonId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("WordWave.Domain.Models.ToeicAnswer", b =>

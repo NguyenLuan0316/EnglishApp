@@ -9,6 +9,7 @@ import { initMatching }   from '../pages/matching.js';
 import { initBuilder }    from '../pages/builder.js';
 import { initFillBlank }  from '../pages/fillblank.js';
 import { initListening }  from '../pages/listening.js';
+import { initIelts }      from '../pages/ielts.js';
 import { initReview }     from '../pages/review.js';
 import { initProgress }   from '../pages/progress.js';
 import { initToeicAdmin } from '../pages/toeicAdmin.js';
@@ -24,6 +25,7 @@ const PAGES = {
   builder:    { title: 'Ghép Câu',           init: initBuilder    },
   fillblank:  { title: 'Điền Từ',            init: initFillBlank  },
   listening:  { title: 'Luyện Nghe',         init: initListening  },
+  ielts:      { title: 'IELTS Mock Test',     init: initIelts      },
   review:     { title: 'Ôn Tập Hôm Nay',     init: initReview     },
   progress:   { title: 'Thống Kê',           init: initProgress   },
   toeicAdmin: { title: 'TOEIC Admin',       init: initToeicAdmin },
@@ -47,6 +49,8 @@ const ROUTES = {
   '/reading': 'fillblank',
   '/fillblank': 'fillblank',
   '/listening': 'listening',
+  '/ielts': 'ielts',
+  '/ielts-test': 'ielts',
   '/review': 'review',
   '/roadmap': 'progress',
   '/progress': 'progress',
@@ -65,6 +69,7 @@ const PAGE_PATHS = {
   builder: '/writing',
   fillblank: '/reading',
   listening: '/listening',
+  ielts: '/ielts',
   review: '/review',
   progress: '/roadmap',
   toeicAdmin: '/admin/toeic',

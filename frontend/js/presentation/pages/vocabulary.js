@@ -5,7 +5,7 @@ import { renderPagination } from '../components/pagination.js';
 import { speak, toast, badgeClass } from '../../shared/utils.js';
 
 let allWords = [], filtered = [], topics = [], currentPage = 1, totalWords = 0;
-const pageSize = 20;
+let pageSize = 20;
 
 export async function initVocabulary() {
   if (topics.length === 0) {
@@ -138,6 +138,10 @@ function renderList() {
     total: totalWords,
     limit: pageSize,
     onPageChange: page => loadVocabularyPage(page),
+    onPageSizeChange: nextSize => {
+      pageSize = nextSize;
+      loadVocabularyPage(1);
+    },
   });
 }
 

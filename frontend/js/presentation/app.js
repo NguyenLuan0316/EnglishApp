@@ -3,6 +3,7 @@ import { badgeClass } from '../shared/utils.js';
 import { initBuilder } from './pages/builder.js';
 import { initFillBlank } from './pages/fillblank.js';
 import { initFlashcard } from './pages/flashcard.js';
+import { initIelts } from './pages/ielts.js';
 import { filterGrammarByLevel } from './pages/grammar.js';
 import { initMatching } from './pages/matching.js';
 import { initQuiz } from './pages/quiz.js';
@@ -20,6 +21,7 @@ window.initQuiz = initQuiz;
 window.initMatching = initMatching;
 window.initBuilder = initBuilder;
 window.initFillBlank = initFillBlank;
+window.initIelts = initIelts;
 
 window.handleGlobalSearch = function(q) {
   if (q.length < 2) {

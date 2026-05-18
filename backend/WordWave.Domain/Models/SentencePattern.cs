@@ -13,6 +13,9 @@ public class SentencePattern
     [Column("sentence")]
     public string Sentence { get; set; } = "";
 
+    [Column("type")]
+    public string Type { get; set; } = "";
+
     [Column("meaning")]
     public string Meaning { get; set; } = "";
 

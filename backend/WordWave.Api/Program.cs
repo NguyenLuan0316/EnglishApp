@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using WordWave.Api.Data;
 using WordWave.Application.Interfaces;
 using WordWave.Application.Interfaces.Repositories;
 using WordWave.Application.Services;
@@ -117,6 +118,16 @@ app.MapControllers();
 
 // Health check
 app.MapGet("/api/health", () => new { status = "ok", time = DateTime.UtcNow });
+
+try
+{
+    await app.SeedGrammarDataAsync();
+    await app.SeedPatternDataAsync();
+}
+catch (Exception ex)
+{
+    app.Logger.LogError(ex, "Failed to seed startup data.");
+}
 
 Console.WriteLine("\n🌊 WordWave API đang chạy tại http://localhost:5000");
 Console.WriteLine("   Swagger/test: http://localhost:5000/api/health\n");

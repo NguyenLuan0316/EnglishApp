@@ -10,9 +10,9 @@ public class PatternService : IPatternService
     private readonly IPatternRepository _repo;
     public PatternService(IPatternRepository repo) => _repo = repo;
 
-    public async Task<List<SentencePatternDto>> GetAllAsync()
+    public async Task<List<SentencePatternDto>> GetAllAsync(PatternQuery query)
     {
-        var patterns = await _repo.GetAllAsync();
+        var patterns = await _repo.GetAllAsync(query);
         return patterns.Select(Map).ToList();
     }
 
@@ -27,6 +27,7 @@ public class PatternService : IPatternService
         return new SentencePatternDto(
             pattern.Id,
             pattern.Sentence,
+            pattern.Type,
             pattern.Meaning,
             pattern.Explanation,
             pattern.Examples

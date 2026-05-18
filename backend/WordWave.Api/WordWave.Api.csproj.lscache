@@ -61,8 +61,12 @@ Controllers/
  ReviewController.cs
  ToeicController.cs
  VocabularyController.cs
+Data/
+ GrammarDataSeeder.cs
+ PatternDataSeeder.cs
 Models/Requests/
  GrammarQueryRequest.cs
+ PatternQueryRequest.cs
  RandomVocabularyRequest.cs
  ToeicRequests.cs
  VocabularyQueryRequest.cs

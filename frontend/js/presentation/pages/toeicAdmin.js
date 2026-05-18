@@ -4,7 +4,7 @@ import { toast } from '../../shared/utils.js';
 
 let initialized = false;
 let importLogPage = 1;
-const importLogPageSize = 10;
+let importLogPageSize = 10;
 
 export function initToeicAdmin() {
   if (!initialized) {
@@ -89,6 +89,10 @@ async function loadToeicImportLogs(page = 1) {
       total: Array.isArray(result) ? logs.length : (result.total || 0),
       limit: importLogPageSize,
       onPageChange: loadToeicImportLogs,
+      onPageSizeChange: nextSize => {
+        importLogPageSize = nextSize;
+        loadToeicImportLogs(1);
+      },
     });
   } catch {
     container.innerHTML = '<div style="color:var(--red);font-size:13px;">Khong tai duoc import logs. Hay kiem tra API/backend.</div>';

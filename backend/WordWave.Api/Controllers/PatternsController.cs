@@ -1,5 +1,7 @@
 // wordwave/backend/WordWave.Api/Controllers/PatternsController.cs
 using Microsoft.AspNetCore.Mvc;
+using WordWave.Api.Models.Requests;
+using WordWave.Application.Contracts.Patterns;
 using WordWave.Application.Interfaces;
 
 namespace WordWave.Api.Controllers;
@@ -12,7 +14,11 @@ public class PatternsController : ApiControllerBase
     public PatternsController(IPatternService service) => _service = service;
 
     [HttpGet]
-    public async Task<IActionResult> GetAll() => Ok(await _service.GetAllAsync());
+    public async Task<IActionResult> GetAll([FromQuery] PatternQueryRequest req)
+    {
+        var result = await _service.GetAllAsync(new PatternQuery(req.Search, req.Purpose ?? req.Type));
+        return Ok(result);
+    }
 
     [HttpGet("{id:int}")]
     public async Task<IActionResult> GetById(int id)

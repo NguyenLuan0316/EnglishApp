@@ -40,11 +40,17 @@ public class AppDbContext : DbContext
             e.Property(x => x.CreatedAt).HasColumnName("created_at");
         });
         mb.Entity<SentencePattern>(e => {
+            e.Property(x => x.Type).HasColumnName("type");
             e.Property(x => x.Examples).HasColumnType("text[]");
             e.Property(x => x.CreatedAt).HasColumnName("created_at");
+            e.HasIndex(x => x.Type);
         });
         mb.Entity<GrammarLesson>(e => {
             e.Property(x => x.CreatedAt).HasColumnName("created_at");
+            e.HasMany(x => x.GrammarExamples)
+                .WithOne()
+                .HasForeignKey(x => x.LessonId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
         mb.Entity<GrammarExample>(e => {
             e.Property(x => x.LessonId).HasColumnName("lesson_id");

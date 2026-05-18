@@ -74,6 +74,10 @@
         <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/></svg>
         Luyện Nghe
       </div>
+      <div class="nav-item" data-page="ielts" onclick="navigate('ielts')">
+        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5h6m-8 4h10M7 13h10M9 17h4M5 3h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2z"/></svg>
+        IELTS Mock Test
+      </div>
     </div>
     <div class="nav-group">
       <div class="nav-label">Theo dõi</div>
@@ -151,6 +155,7 @@
             <button class="btn btn-secondary" onclick="navigate('quiz')">📝 Quiz</button>
             <button class="btn btn-secondary" onclick="navigate('review')">🔄 Ôn tập</button>
             <button class="btn btn-secondary" onclick="navigate('listening')">🎧 Nghe</button>
+            <button class="btn btn-primary" onclick="navigate('ielts')">IELTS Mock</button>
           </div>
           <div style="padding:14px;background:rgba(99,179,237,0.08);border:1px solid var(--border);border-radius:var(--r2);">
             <div style="font-size:12px;color:var(--text3);margin-bottom:6px;">Từ hôm nay</div>
@@ -193,6 +198,10 @@
 
     <!-- GRAMMAR -->
     <div class="page fade-in" id="page-grammar">
+      <div class="search-box" style="margin-bottom:14px;max-width:420px;">
+        <span>🔍</span>
+        <input type="text" placeholder="Tìm ngữ pháp theo tên..." id="grammar-search" oninput="filterGrammarByName(this.value)"/>
+      </div>
       <div class="tabs" style="margin-bottom:20px;">
         <div class="tab active" onclick="filterGrammarByLevel('all')">Tất cả</div>
         <div class="tab" onclick="filterGrammarByLevel('A1')">A1</div>
@@ -207,6 +216,15 @@
     <!-- PATTERNS -->
     <div class="page fade-in" id="page-patterns">
       <p style="color:var(--text2);font-size:14px;margin-bottom:20px;">Các mẫu câu giao tiếp phổ biến trong tiếng Anh hàng ngày.</p>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
+        <div class="search-box" style="flex:1;min-width:240px;">
+          <svg width="14" height="14" fill="none" stroke="var(--text3)" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="text" placeholder="Tìm mẫu câu hoặc cách dùng..." id="patterns-search"/>
+        </div>
+        <select id="patterns-type-filter" style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:8px 14px;color:var(--text);font-family:var(--font);font-size:14px;outline:none;">
+          <option value="">Tất cả mục đích</option>
+        </select>
+      </div>
       <div id="patterns-list" style="display:flex;flex-direction:column;gap:12px;"></div>
       <div id="patterns-pagination"></div>
     </div>
@@ -357,6 +375,11 @@
       </div>
     </div>
 
+    <!-- IELTS MOCK TEST -->
+    <div class="page fade-in" id="page-ielts">
+      <div id="ielts-root"></div>
+    </div>
+
     <!-- REVIEW -->
     <div class="page fade-in" id="page-review">
       <div style="max-width:640px;margin:0 auto;">
@@ -446,12 +469,13 @@
 <script type="module">
 import { initRouter, navigate, toggleSidebar } from './js/presentation/routing/router.js';
 import { filterVocab, setTopicFilter, loadMoreVocab } from './js/presentation/pages/vocabulary.js';
-import { filterGrammarByLevel } from './js/presentation/pages/grammar.js';
+import { filterGrammarByLevel, filterGrammarByName } from './js/presentation/pages/grammar.js';
 import { initFlashcard }  from './js/presentation/pages/flashcard.js';
 import { initQuiz }       from './js/presentation/pages/quiz.js';
 import { initMatching }   from './js/presentation/pages/matching.js';
 import { initBuilder }    from './js/presentation/pages/builder.js';
 import { initFillBlank }  from './js/presentation/pages/fillblank.js';
+import { initIelts }      from './js/presentation/pages/ielts.js';
 import { api }            from './js/infrastructure/api/apiClient.js';
 import { badgeClass }     from './js/shared/utils.js';
 
@@ -462,11 +486,13 @@ window.filterVocab        = filterVocab;
 window.setTopicFilter     = setTopicFilter;
 window.loadMoreVocab      = loadMoreVocab;
 window.filterGrammarByLevel = filterGrammarByLevel;
+window.filterGrammarByName = filterGrammarByName;
 window.initFlashcard      = initFlashcard;
 window.initQuiz           = initQuiz;
 window.initMatching       = initMatching;
 window.initBuilder        = initBuilder;
 window.initFillBlank      = initFillBlank;
+window.initIelts          = initIelts;
 
 // Global search
 window.handleGlobalSearch = function(q) {
