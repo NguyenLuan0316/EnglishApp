@@ -57,6 +57,7 @@ Migrations/
  20260515090619_AddToeicDataImport.cs
  20260515090619_AddToeicDataImport.Designer.cs
  20260518050000_AddPatternType.cs
+ 20260518100000_AddIeltsTests.cs
  AppDbContextModelSnapshot.cs
 obj/Debug/net8.0/
  .NETCoreApp,Version=v8.0.AssemblyAttributes.cs
@@ -65,6 +66,7 @@ obj/Debug/net8.0/
 Persistence/AppDbContext.cs
 Repositories/
  GrammarRepository.cs
+ IeltsRepository.cs
  PatternRepository.cs
  ToeicRepository.cs
  VocabularyRepository.cs

@@ -57,15 +57,18 @@ Controllers/
  AdminToeicController.cs
  ApiControllerBase.cs
  GrammarController.cs
+ IeltsController.cs
  PatternsController.cs
  ReviewController.cs
  ToeicController.cs
  VocabularyController.cs
 Data/
  GrammarDataSeeder.cs
+ IeltsDataSeeder.cs
  PatternDataSeeder.cs
 Models/Requests/
  GrammarQueryRequest.cs
+ IeltsRequests.cs
  PatternQueryRequest.cs
  RandomVocabularyRequest.cs
  ToeicRequests.cs

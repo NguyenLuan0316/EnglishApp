@@ -18,6 +18,8 @@ public class AppDbContext : DbContext
     public DbSet<ToeicPassage> ToeicPassages { get; set; }
     public DbSet<ToeicAudio> ToeicAudios { get; set; }
     public DbSet<ToeicImportLog> ToeicImportLogs { get; set; }
+    public DbSet<IeltsTest> IeltsTests { get; set; }
+    public DbSet<IeltsAttempt> IeltsAttempts { get; set; }
 
     protected override void OnModelCreating(ModelBuilder mb)
     {
@@ -33,6 +35,8 @@ public class AppDbContext : DbContext
         mb.Entity<ToeicPassage>().ToTable("toeic_passages");
         mb.Entity<ToeicAudio>().ToTable("toeic_audios");
         mb.Entity<ToeicImportLog>().ToTable("toeic_import_logs");
+        mb.Entity<IeltsTest>().ToTable("ielts_tests");
+        mb.Entity<IeltsAttempt>().ToTable("ielts_attempts");
 
         // Map cột snake_case
         mb.Entity<VocabWord>(e => {
@@ -105,6 +109,27 @@ public class AppDbContext : DbContext
             e.Property(x => x.FailedItems).HasColumnName("failed_items");
             e.Property(x => x.ErrorMessage).HasColumnName("error_message");
             e.Property(x => x.CreatedAt).HasColumnName("created_at");
+        });
+        mb.Entity<IeltsTest>(e => {
+            e.Property(x => x.SourceType).HasColumnName("source_type");
+            e.Property(x => x.SourceName).HasColumnName("source_name");
+            e.Property(x => x.TestData).HasColumnName("test_data").HasColumnType("jsonb");
+            e.Property(x => x.QuestionCount).HasColumnName("question_count");
+            e.Property(x => x.IsPublic).HasColumnName("is_public");
+            e.Property(x => x.CreatedAt).HasColumnName("created_at");
+            e.HasMany(x => x.Attempts).WithOne(x => x.Test).HasForeignKey(x => x.IeltsTestId).OnDelete(DeleteBehavior.Cascade);
+        });
+        mb.Entity<IeltsAttempt>(e => {
+            e.Property(x => x.IeltsTestId).HasColumnName("ielts_test_id");
+            e.Property(x => x.LearnerId).HasColumnName("learner_id");
+            e.Property(x => x.StateData).HasColumnName("state_data").HasColumnType("jsonb");
+            e.Property(x => x.ResultData).HasColumnName("result_data").HasColumnType("jsonb");
+            e.Property(x => x.IsSubmitted).HasColumnName("is_submitted");
+            e.Property(x => x.OverallBand).HasColumnName("overall_band").HasPrecision(3, 1);
+            e.Property(x => x.CreatedAt).HasColumnName("created_at");
+            e.Property(x => x.UpdatedAt).HasColumnName("updated_at");
+            e.Property(x => x.SubmittedAt).HasColumnName("submitted_at");
+            e.HasIndex(x => new { x.IeltsTestId, x.LearnerId }).IsUnique();
         });
 
         SeedToeicData(mb);

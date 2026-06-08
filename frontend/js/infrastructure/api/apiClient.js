@@ -67,4 +67,17 @@ export const api = {
   getToeicTestById: (id) => fetchJson(`${BASE}/toeic/tests/${id}`),
   getToeicQuestions: (params = {}) => fetchJson(`${BASE}/toeic/questions?${new URLSearchParams(params)}`),
   submitToeicTest: (id, answers) => postJson(`${BASE}/toeic/tests/${id}/submit`, { answers }),
+
+  // IELTS
+  getIeltsTests: (learnerId = 'default') => fetchJson(`${BASE}/ielts/tests?${new URLSearchParams({ learnerId })}`),
+  getIeltsTestById: (id, learnerId = 'default') => fetchJson(`${BASE}/ielts/tests/${id}?${new URLSearchParams({ learnerId })}`),
+  saveIeltsAttempt: (id, learnerId, stateData) => fetch(`${BASE}/ielts/tests/${id}/attempt`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ learnerId, stateData }),
+  }).then(res => {
+    if (!res.ok) throw new Error(`API error ${res.status}`);
+    return res.json();
+  }),
+  submitIeltsTest: (id, learnerId, stateData) => postJson(`${BASE}/ielts/tests/${id}/submit`, { learnerId, stateData }),
 };

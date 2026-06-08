@@ -56,6 +56,8 @@ TemporaryDependencyNodeTargetIdentifier=net8.0
 Models/
  GrammarExample.cs
  GrammarLesson.cs
+ IeltsAttempt.cs
+ IeltsTest.cs
  SentencePattern.cs
  ToeicAnswer.cs
  ToeicAudio.cs

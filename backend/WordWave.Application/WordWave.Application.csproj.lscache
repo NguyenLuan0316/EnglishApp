@@ -57,6 +57,7 @@ Contracts/Grammar/
  GrammarExampleDto.cs
  GrammarLessonDto.cs
 Contracts/
+ Ielts/IeltsDtos.cs
  Paging/PagedResult.cs
  Patterns/
   PatternQuery.cs
@@ -73,6 +74,7 @@ Contracts/
  Vocabulary/VocabularyQuery.cs
 Interfaces/
  IGrammarService.cs
+ IIeltsService.cs
  IPatternService.cs
  IReviewService.cs
  IToeicDataSourceCrawler.cs
@@ -83,6 +85,7 @@ Interfaces/
  IVocabularyService.cs
  Repositories/
   IGrammarRepository.cs
+  IIeltsRepository.cs
   IPatternRepository.cs
   IToeicRepository.cs
   IVocabularyRepository.cs
@@ -92,6 +95,7 @@ obj/Debug/net8.0/
  WordWave.Application.GlobalUsings.g.cs
 Services/
  GrammarService.cs
+ IeltsService.cs
  PatternService.cs
  ReviewService.cs
  ToeicImportService.cs

@@ -57,6 +57,8 @@ builder.Services.AddScoped<IToeicService, ToeicService>();
 builder.Services.AddScoped<IToeicImportService, ToeicImportService>();
 builder.Services.AddScoped<IToeicImportPackageWriter, ToeicImportPackageWriter>();
 builder.Services.AddScoped<IToeicRepository, ToeicRepository>();
+builder.Services.AddScoped<IIeltsService, IeltsService>();
+builder.Services.AddScoped<IIeltsRepository, IeltsRepository>();
 builder.Services.AddScoped<IToeicImporter, JsonToeicImporter>();
 builder.Services.AddScoped<IToeicImporter, CsvToeicImporter>();
 builder.Services.AddScoped<IToeicImporter, AiGeneratedToeicImporter>();
@@ -123,6 +125,7 @@ try
 {
     await app.SeedGrammarDataAsync();
     await app.SeedPatternDataAsync();
+    await app.SeedIeltsDataAsync();
 }
 catch (Exception ex)
 {
