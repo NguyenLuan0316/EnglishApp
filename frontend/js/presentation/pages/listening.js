@@ -1,19 +1,16 @@
 // wordwave/frontend/js/pages/listening.js
 import { state } from '../../application/state/appState.js';
 import { api } from '../../infrastructure/api/apiClient.js';
+import { escapePracticeText } from '../../domain/practice.js';
 import { speak, toast } from '../../shared/utils.js';
 
-let wordPool = [];
+let listenRequest = 0;
+let listenTimer = null;
+let listenAnswered = true;
 
 export async function initListening() {
   buildBars();
-  try {
-    if (wordPool.length === 0) {
-      const res = await api.getVocab({ limit: 200 });
-      wordPool = res.data || [];
-    }
-  } catch(e) {}
-  nextListenWord();
+  await nextListenWord();
 }
 
 function buildBars() {
@@ -24,16 +21,40 @@ function buildBars() {
   ).join('');
 }
 
-function nextListenWord() {
-  const pool = wordPool.filter(v => v.level === state.listenLevel);
-  if (pool.length === 0) return;
-  const words = [...pool].sort(() => Math.random() - 0.5);
-  state.listenWord = words[0];
-
-  const inp = document.getElementById('listen-input');
-  if (inp) { inp.value = ''; inp.className = 'blank-input'; inp.style.cssText = 'width:100%;text-align:left;padding:12px 16px;'; }
-  document.getElementById('listen-feedback').style.display = 'none';
-  document.getElementById('listen-play-btn').textContent   = '🔊 Phát âm';
+async function nextListenWord() {
+  const request = ++listenRequest;
+  clearTimeout(listenTimer);
+  listenAnswered = true;
+  state.listenWord = null;
+  const input = document.getElementById('listen-input');
+  input.value = '';
+  input.className = 'blank-input';
+  input.disabled = true;
+  const feedback = document.getElementById('listen-feedback');
+  feedback.style.display = 'none';
+  const button = document.getElementById('listen-play-btn');
+  button.textContent = 'Đang tải…';
+  button.disabled = true;
+  try {
+    const words = await api.getRandom({ count: 1, level: state.listenLevel });
+    if (request !== listenRequest) return;
+    state.listenWord = words[0] || null;
+    if (!state.listenWord) {
+      feedback.style.display = 'block';
+      feedback.textContent = 'Chưa có từ ở độ khó này. Chọn độ khó khác hoặc bấm Bỏ qua để thử lại.';
+      return;
+    }
+    listenAnswered = false;
+    input.disabled = false;
+    button.disabled = false;
+  } catch {
+    if (request !== listenRequest) return;
+    feedback.style.display = 'block';
+    feedback.textContent = 'Không thể tải từ. Bấm Bỏ qua để thử lại.';
+    toast('Không thể tải từ luyện nghe.', 'error');
+  } finally {
+    if (request === listenRequest) button.textContent = '🔊 Phát âm';
+  }
 }
 
 window.playListenWord = function() {
@@ -48,27 +69,32 @@ window.playListenWord = function() {
 };
 
 window.checkListening = function() {
-  if (!state.listenWord) return;
+  if (!state.listenWord || listenAnswered) return;
   const val = document.getElementById('listen-input')?.value.trim().toLowerCase();
+  if (!val) return;
+  listenAnswered = true;
   const fb  = document.getElementById('listen-feedback');
   fb.style.display = 'block';
 
   if (val === state.listenWord.word.toLowerCase()) {
     document.getElementById('listen-input').classList.add('correct');
-    fb.innerHTML = `<div style="color:var(--green);">✓ Đúng! "${state.listenWord.word}" — ${state.listenWord.meaning} (+8 XP)</div>`;
+    fb.innerHTML = `<div style="color:var(--green);">✓ Đúng! "${escapePracticeText(state.listenWord.word)}" — ${escapePracticeText(state.listenWord.meaning)} (+10 XP)</div>`;
     state.listenCorrect++;
-    state.addXP(8);
   } else {
     document.getElementById('listen-input').classList.add('wrong');
-    fb.innerHTML = `<div style="color:var(--red);">✗ Sai. Từ cần nghe là: <strong style="color:var(--accent);">${state.listenWord.word}</strong></div>`;
+    fb.innerHTML = `<div style="color:var(--red);">✗ Sai. Từ cần nghe là: <strong style="color:var(--accent);">${escapePracticeText(state.listenWord.word)}</strong></div>`;
     state.listenWrong++;
   }
+  api.submitReview(state.listenWord.id, val === state.listenWord.word.toLowerCase()).catch(() => toast('Chưa lưu được tiến độ luyện nghe.', 'error'));
   updateListenStats();
-  setTimeout(nextListenWord, 2000);
+  listenTimer = setTimeout(nextListenWord, 2000);
 };
 
 window.skipListening = function() {
-  state.listenWrong++;
+  if (state.listenWord && !listenAnswered) {
+    state.listenWrong++;
+    api.submitReview(state.listenWord.id, false).catch(() => toast('Chưa lưu được tiến độ luyện nghe.', 'error'));
+  }
   updateListenStats();
   nextListenWord();
 };

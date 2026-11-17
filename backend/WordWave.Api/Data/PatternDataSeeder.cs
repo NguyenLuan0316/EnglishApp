@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using WordWave.Domain.Models;
 using WordWave.Infrastructure.Data;
@@ -12,21 +13,17 @@ public static class PatternDataSeeder
     {
         using var scope = app.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        var seeds = BuildDailyPatterns().Take(ExpectedCount).ToList();
-        var existing = await db.SentencePatterns.OrderBy(x => x.Id).ToListAsync();
-
-        if (existing.Count == ExpectedCount
-            && existing.Select(x => x.Sentence).SequenceEqual(seeds.Select(x => x.Sentence))
-            && existing.Select(x => x.Type).SequenceEqual(seeds.Select(x => x.Type)))
+        var seeds = BuildDailyPatterns().Take(ExpectedCount).Concat(LoadAdditionalPatterns()).ToList();
+        var existingSentences = await db.SentencePatterns.AsNoTracking().Select(x => x.Sentence).ToListAsync();
+        var seen = new HashSet<string>(existingSentences.Select(x => x.Trim()), StringComparer.OrdinalIgnoreCase);
+        var missing = seeds.Where(seed => seen.Add(seed.Sentence.Trim())).ToList();
+        if (missing.Count == 0)
         {
             return;
         }
 
-        db.SentencePatterns.RemoveRange(existing);
-        await db.SaveChangesAsync();
-
         var createdAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-        await db.SentencePatterns.AddRangeAsync(seeds.Select(seed => new SentencePattern
+        await db.SentencePatterns.AddRangeAsync(missing.Select(seed => new SentencePattern
         {
             Sentence = seed.Sentence,
             Type = seed.Type,
@@ -36,6 +33,18 @@ public static class PatternDataSeeder
             CreatedAt = createdAt
         }));
         await db.SaveChangesAsync();
+    }
+
+    private static List<SeedPattern> LoadAdditionalPatterns()
+    {
+        using var stream = typeof(PatternDataSeeder).Assembly.GetManifestResourceStream("WordWave.Api.Data.daily-patterns.json") ?? throw new InvalidOperationException("Daily sentence-pattern resource is missing.");
+        var patterns = JsonSerializer.Deserialize<List<SeedPattern>>(stream, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? throw new InvalidOperationException("Daily sentence-pattern resource is empty.");
+        if (patterns.Count != 1000 || patterns.Any(x => string.IsNullOrWhiteSpace(x.Sentence) || string.IsNullOrWhiteSpace(x.Type) || string.IsNullOrWhiteSpace(x.Meaning) || string.IsNullOrWhiteSpace(x.Explanation) || x.Examples is null || x.Examples.Length == 0) || patterns.Select(x => x.Sentence.Trim()).Distinct(StringComparer.OrdinalIgnoreCase).Count() != patterns.Count)
+        {
+            throw new InvalidOperationException("Expected 1,000 unique, complete daily sentence patterns.");
+        }
+
+        return patterns;
     }
 
     private sealed record SeedPattern(string Sentence, string Type, string Meaning, string Explanation, string[] Examples);

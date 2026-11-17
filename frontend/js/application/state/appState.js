@@ -1,14 +1,32 @@
 // wordwave/frontend/js/state.js
 export const state = {
-  xp:      parseInt(localStorage.getItem('ww_xp')   || '0'),
-  streak:  parseInt(localStorage.getItem('ww_streak')|| '0'),
-  level:   localStorage.getItem('ww_level') || 'A1',
+  userId: null,
+  xp: 0,
+  streak: 0,
+  level: 'A1',
 
-  addXP(n) {
-    this.xp += n;
-    localStorage.setItem('ww_xp', this.xp);
-    document.getElementById('xp-display')?.textContent &&
-      (document.getElementById('xp-display').textContent = this.xp);
+  setUser(id) {
+    this.userId = id;
+    this.xp = 0;
+    this.streak = 0;
+    this.learningSummary = null;
+    this.level = localStorage.getItem(`ww_${id}_level`) || 'A1';
+  },
+
+  learningSummary: null,
+
+  applyLearningSummary(summary) {
+    this.learningSummary = summary;
+    this.xp = summary.totalXp;
+    this.streak = summary.streak;
+    for (const [id, value] of Object.entries({ 'xp-display': this.xp, 'xp-total': this.xp, 'streak-display': this.streak })) {
+      const element = document.getElementById(id);
+      if (element) element.textContent = value;
+    }
+    const remaining = document.getElementById('sidebar-daily-remaining');
+    if (remaining) remaining.textContent = `${Math.max(0, summary.dailyTotal - summary.dailyCompleted)} bài còn lại hôm nay`;
+    const bar = document.getElementById('sidebar-daily-progress');
+    if (bar) bar.style.width = `${summary.dailyTotal ? Math.round(summary.dailyCompleted / summary.dailyTotal * 100) : 0}%`;
   },
 
   // Flashcard
@@ -32,3 +50,5 @@ export const state = {
   // Review
   reviewWords: [], reviewIndex: 0,
 };
+
+window.addEventListener('wordwave:learning-updated', event => state.applyLearningSummary(event.detail));

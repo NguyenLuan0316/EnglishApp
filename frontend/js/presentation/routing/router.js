@@ -13,8 +13,15 @@ import { initIelts }      from '../pages/ielts.js';
 import { initReview }     from '../pages/review.js';
 import { initProgress }   from '../pages/progress.js';
 import { initToeicAdmin } from '../pages/toeicAdmin.js';
+import { initLogin, initRegister, initAccount } from '../pages/auth.js';
+import { initUsersAdmin } from '../pages/usersAdmin.js';
+import { authState } from '../../application/state/authState.js';
 
 const PAGES = {
+  login: { title: 'Đăng nhập', init: initLogin, anonymous: true },
+  register: { title: 'Tạo tài khoản', init: initRegister, anonymous: true },
+  account: { title: 'Tài khoản của tôi', init: initAccount },
+  usersAdmin: { title: 'Quản lý tài khoản', init: initUsersAdmin, admin: true },
   dashboard:  { title: 'Dashboard',         init: initDashboard  },
   vocabulary: { title: 'Từ Vựng',            init: initVocabulary },
   grammar:    { title: 'Ngữ Pháp',           init: initGrammar    },
@@ -28,10 +35,14 @@ const PAGES = {
   ielts:      { title: 'IELTS Mock Test',     init: initIelts      },
   review:     { title: 'Ôn Tập Hôm Nay',     init: initReview     },
   progress:   { title: 'Thống Kê',           init: initProgress   },
-  toeicAdmin: { title: 'TOEIC Admin',       init: initToeicAdmin },
+  toeicAdmin: { title: 'TOEIC Admin',       init: initToeicAdmin, admin: true },
 };
 
 const ROUTES = {
+  '/login': 'login',
+  '/register': 'register',
+  '/account': 'account',
+  '/admin/users': 'usersAdmin',
   '/': 'dashboard',
   '/home': 'dashboard',
   '/dashboard': 'dashboard',
@@ -59,6 +70,10 @@ const ROUTES = {
 };
 
 const PAGE_PATHS = {
+  login: '/login',
+  register: '/register',
+  account: '/account',
+  usersAdmin: '/admin/users',
   dashboard: '/',
   vocabulary: '/vocab',
   grammar: '/grammar',
@@ -104,6 +119,19 @@ function pagePath(page) {
 }
 
 function renderPage(page) {
+  if (!authState.user && !PAGES[page]?.anonymous) {
+    sessionStorage.setItem('ww_returnTo', pagePath(page));
+    navigate('login', { replace: true });
+    return false;
+  }
+  if (authState.user && PAGES[page]?.anonymous) {
+    navigate('dashboard', { replace: true });
+    return false;
+  }
+  if (PAGES[page]?.admin && authState.user?.role !== 'Admin') {
+    navigate('dashboard', { replace: true });
+    return false;
+  }
   // Hide all pages
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   // Activate target
@@ -120,11 +148,12 @@ function renderPage(page) {
   PAGES[page]?.init();
   // Close mobile sidebar
   document.getElementById('sidebar')?.classList.remove('open');
+  return true;
 }
 
 export function navigate(page, options = {}) {
   const target = PAGES[page] ? page : pageFromPath(page) || pageFromLocation();
-  renderPage(target);
+  if (!renderPage(target)) return;
 
   if (options.skipHistory) return;
 
@@ -140,8 +169,7 @@ export function navigate(page, options = {}) {
 
 export function initRouter() {
   const page = pageFromLocation();
-  renderPage(page);
-  history.replaceState({ page }, '', window.location.href);
+  if (renderPage(page)) history.replaceState({ page }, '', window.location.href);
   window.addEventListener('popstate', () => {
     renderPage(pageFromLocation());
   });

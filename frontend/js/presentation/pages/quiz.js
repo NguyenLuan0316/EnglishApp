@@ -1,15 +1,32 @@
 // wordwave/frontend/js/pages/quiz.js
 import { state } from '../../application/state/appState.js';
 import { api } from '../../infrastructure/api/apiClient.js';
+import { escapePracticeText } from '../../domain/practice.js';
 import { shuffle, toast, confetti } from '../../shared/utils.js';
 
 let allPool = [];
+let quizRequest = 0;
+let questionTimer = null;
 
 export async function initQuiz() {
+  const request = ++quizRequest;
+  clearTimeout(questionTimer);
+  state.quizAnswered = true;
+  state.quizWords = [];
+  document.getElementById('quiz-question-area').textContent = 'Đang tải câu hỏi từ Từ vựng…';
   try {
-    if (allPool.length === 0) {
-      const res = await api.getVocab({ limit: 200 });
-      allPool = res.data || [];
+    const words = await api.getRandom({ count: 100 });
+    if (request !== quizRequest) return;
+    const seen = new Set();
+    allPool = words.filter(word => {
+      const key = word.meaning?.trim().toLowerCase();
+      if (!word.word || !key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+    if (allPool.length < 2) {
+      document.getElementById('quiz-question-area').textContent = 'Chưa đủ từ có nghĩa khác nhau để tạo câu hỏi. Chọn làm lại để thử lại.';
+      return;
     }
     const pool       = shuffle([...allPool]);
     state.quizWords  = pool.slice(0, 10);
@@ -19,6 +36,8 @@ export async function initQuiz() {
     document.getElementById('quiz-score').textContent = '0 ✓';
     renderQuestion();
   } catch(e) {
+    if (request !== quizRequest) return;
+    document.getElementById('quiz-question-area').textContent = 'Không thể tải câu hỏi. Hãy thử lại.';
     toast('Không thể tải câu hỏi.', 'error');
   }
 }
@@ -41,12 +60,12 @@ function renderQuestion() {
   document.getElementById('quiz-question-area').innerHTML = `
     <div class="card" style="margin-bottom:20px;text-align:center;padding:28px;">
       <div style="font-size:11px;color:var(--text3);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;">Từ này có nghĩa là gì?</div>
-      <div style="font-size:36px;font-weight:700;margin-bottom:8px;">${w.word}</div>
-      <div style="font-size:14px;color:var(--accent2);font-family:var(--mono);">${w.phonetic}</div>
+      <div style="font-size:36px;font-weight:700;margin-bottom:8px;">${escapePracticeText(w.word)}</div>
+      <div style="font-size:14px;color:var(--accent2);font-family:var(--mono);">${escapePracticeText(w.phonetic || '')}</div>
     </div>
     ${opts.map((o, i) => `
       <button class="quiz-option" id="qopt-${o.id}" onclick="answerQuiz(${w.id}, ${o.id}, this)">
-        <span class="option-letter">${letters[i]}</span>${o.meaning}
+        <span class="option-letter">${letters[i]}</span>${escapePracticeText(o.meaning)}
       </button>`).join('')}
   `;
 }
@@ -60,18 +79,17 @@ window.answerQuiz = function(correctId, selectedId, btn) {
     btn.classList.add('correct');
     state.quizScore++;
     document.getElementById('quiz-score').textContent = state.quizScore + ' ✓';
-    state.addXP(10);
     toast('✓ Đúng rồi! +10 XP', 'success');
-    api.submitReview(correctId, true).catch(() => {});
+    api.submitReview(correctId, true).catch(() => toast('Chưa lưu được tiến độ. Vui lòng thử lại khi có kết nối.', 'error'));
   } else {
     btn.classList.add('wrong');
     document.getElementById('qopt-' + correctId)?.classList.add('correct');
     const correctWord = allPool.find(v => v.id === correctId);
     toast(`✗ Sai! Đáp án: ${correctWord?.meaning || ''}`, 'error');
-    api.submitReview(correctId, false).catch(() => {});
+    api.submitReview(correctId, false).catch(() => toast('Chưa lưu được tiến độ. Vui lòng thử lại khi có kết nối.', 'error'));
   }
 
-  setTimeout(() => {
+  questionTimer = setTimeout(() => {
     state.quizIndex++;
     if (state.quizIndex >= state.quizWords.length) {
       const pct = Math.round(state.quizScore / state.quizWords.length * 100);

@@ -41,6 +41,10 @@ export function badgeClass(level) {
   return { A1:'badge-a1', A2:'badge-a2', B1:'badge-b1', B2:'badge-b2', C1:'badge-c1' }[level] || '';
 }
 
+export function levelLabel(level) {
+  return level === 'N/A' ? 'Chưa phân loại' : level;
+}
+
 export function levelColor(level) {
   return { A1:'var(--green)', A2:'var(--accent)', B1:'var(--accent2)', B2:'var(--accent3)', C1:'var(--purple)' }[level] || 'var(--accent)';
 }

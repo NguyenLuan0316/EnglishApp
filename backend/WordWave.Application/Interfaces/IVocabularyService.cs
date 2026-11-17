@@ -9,6 +9,7 @@ public interface IVocabularyService
     Task<PagedResult<VocabWord>> GetPagedAsync(VocabularyQuery query);
     Task<List<VocabWord>> GetRandomAsync(string? level, string? topic, int count = 10);
     Task<List<string>> GetTopicsAsync();
+    Task<List<VocabularyTopicSummaryDto>> GetTopicSummariesAsync(string? level);
     Task<VocabWord?> GetByIdAsync(int id);
     Task<List<VocabWord>> GetAllAsync();
 }

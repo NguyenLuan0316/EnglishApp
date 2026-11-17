@@ -18,7 +18,17 @@ public class ReviewController : ControllerBase
 
     // POST /api/review/submit  body: { wordId, correct }
     [HttpPost("submit")]
-    public async Task<IActionResult> Submit([FromBody] SubmitReviewRequest req) => Ok(await _service.SubmitAsync(req));
+    public async Task<IActionResult> Submit([FromBody] SubmitReviewRequest req)
+    {
+        try
+        {
+            return Ok(await _service.SubmitAsync(req));
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return Problem(detail: ex.Message, statusCode: StatusCodes.Status404NotFound);
+        }
+    }
 
     // GET /api/review/progress  — tổng tiến độ
     [HttpGet("progress")]

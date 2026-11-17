@@ -1,47 +1,56 @@
 # TOEIC Data Import
 
-Tai lieu nay mo ta kien truc du lieu va cach import/crawl du lieu luyen TOEIC vao WordWave.
+This document describes the implemented TOEIC import and crawl pipeline in WordWave. It is grounded in `AdminToeicController`, `ToeicImportService`, the importer/crawler adapters under `backend/WordWave.Infrastructure/Toeic/`, and the TOEIC entity graph in `AppDbContext`.
 
-## Luu y ban quyen
+## Important access and content warning
 
-- Khong import de thi TOEIC chinh thuc, sach thuong mai, audio/image co ban quyen, hoac noi dung khong co quyen su dung.
-- Chi import tu file JSON/CSV do admin so huu, duoc cap phep, public domain, Creative Commons phu hop, hoac nguon public cho phep tai su dung.
-- Moi file import phai co `sourceName`, `license`, va `contentOwner`.
-- Website crawler phai kiem tra `robots.txt`. Neu robots.txt khong cho phep truy cap URL can crawl, he thong bo qua nguon do.
-- Audio/image duoc luu bang URL hoac `localPath`. Neu can download file, hay them storage adapter rieng va chi download khi license cho phep.
+The routes under `/api/admin/toeic` are named as admin routes but have no authentication or authorization in the current codebase. Do not expose them to untrusted clients until access control is implemented.
 
-## Cau truc du lieu
+Only import content that WordWave is permitted to store and redistribute. `ToeicImportPackageWriter` requires `sourceName`, `license`, and `contentOwner`, but it only checks that these values are non-empty; it does not verify the legal claims.
 
-Bang TOEIC moi:
+## Implemented components
 
-- `toeic_tests`: metadata cua test, nguon du lieu, license, owner.
-- `toeic_parts`: 7 part TOEIC trong moi test.
-- `toeic_questions`: cau hoi, prompt, image URL, passage/audio lien quan.
-- `toeic_answers`: dap an va co `is_correct`.
-- `toeic_passages`: doan doc cho Part 6/7 hoac ngu canh khac.
-- `toeic_audios`: audio URL/local path/transcript cho Part 1-4.
-- `toeic_import_logs`: log import/crawl, so cau thanh cong/loi va chi tiet loi.
+| Responsibility | Code |
+| --- | --- |
+| HTTP upload/crawl endpoints | `backend/WordWave.Api/Controllers/AdminToeicController.cs` |
+| Import orchestration and log queries | `backend/WordWave.Application/Services/ToeicImportService.cs` |
+| Shared package validation and persistence | `ToeicImportPackageWriter` in the same service file |
+| JSON parser | `backend/WordWave.Infrastructure/Toeic/JsonToeicImporter.cs` |
+| Flat-row CSV parser | `backend/WordWave.Infrastructure/Toeic/CsvToeicImporter.cs` |
+| AI-generated JSON discriminator | `backend/WordWave.Infrastructure/Toeic/AiGeneratedToeicImporter.cs` |
+| HTTP JSON crawler and robots check | `backend/WordWave.Infrastructure/Toeic/WebsiteToeicCrawler.cs` |
+| Database access | `backend/WordWave.Infrastructure/Repositories/ToeicRepository.cs` |
+| Import contracts | `backend/WordWave.Application/Contracts/Toeic/ToeicImportModels.cs` |
+| Entity relationships and seed data | `backend/WordWave.Infrastructure/Persistence/AppDbContext.cs` |
 
-Part duoc ho tro:
+The `ai-generated` adapter inherits the JSON parser, but no dedicated HTTP endpoint currently selects it. The upload service selects only `json` or `csv`.
 
-1. Picture Description
-2. Question Response
-3. Conversations
-4. Talks
-5. Incomplete Sentences
-6. Text Completion
-7. Reading Comprehension
+## Data model
 
-## JSON mau
+The migration `backend/WordWave.Infrastructure/Migrations/20260515090619_AddToeicDataImport.cs` creates:
+
+- `toeic_tests`: test metadata, source, license, owner, publication flag, and creation time.
+- `toeic_parts`: parts 1 through 7 within a test.
+- `toeic_questions`: prompts, question text, image URL, difficulty, explanation, and optional passage/audio links.
+- `toeic_answers`: answer options with one option marked correct by import validation.
+- `toeic_passages`: reading/context passages owned by a part.
+- `toeic_audios`: audio URL/local path/transcript owned by a part.
+- `toeic_import_logs`: success, partial, or failure details for validated save attempts.
+
+`AppDbContext` configures cascade delete from tests to parts and from parts to their questions, passages, and audios. Deleting a passage or audio sets the corresponding optional question foreign key to null.
+
+## JSON package
+
+`JsonToeicImporter` deserializes case-insensitively, permits comments and trailing commas, and fills a missing `sourceType` with `json` and a missing `sourceName` with the uploaded filename.
 
 ```json
 {
   "title": "Admin TOEIC Mini Test",
-  "description": "Original practice content created by the admin.",
+  "description": "Original practice content created by the administrator.",
   "sourceType": "json",
-  "sourceName": "Admin uploaded file",
+  "sourceName": "Admin upload",
   "sourceUrl": "",
-  "license": "Owned by admin and allowed for WordWave use.",
+  "license": "Owned by the content owner and permitted for WordWave use.",
   "contentOwner": "WordWave Admin",
   "parts": [
     {
@@ -53,12 +62,10 @@ Part duoc ho tro:
           "questionNumber": 1,
           "questionText": "The invoice was sent _____ email.",
           "difficulty": "easy",
-          "explanation": "The preposition 'by' is used for method.",
+          "explanation": "Use 'by' for the method.",
           "answers": [
             { "label": "A", "answerText": "by", "isCorrect": true },
-            { "label": "B", "answerText": "on", "isCorrect": false },
-            { "label": "C", "answerText": "with", "isCorrect": false },
-            { "label": "D", "answerText": "for", "isCorrect": false }
+            { "label": "B", "answerText": "on", "isCorrect": false }
           ]
         }
       ]
@@ -66,12 +73,12 @@ Part duoc ho tro:
     {
       "partNumber": 7,
       "name": "Reading Comprehension",
-      "instructions": "Read the text and answer the questions.",
+      "instructions": "Read the passage and answer the question.",
       "passages": [
         {
           "key": "email-1",
           "title": "Office Email",
-          "content": "The training session will begin at 10 a.m. in Room 402."
+          "content": "The training session begins at 10 a.m. in Room 402."
         }
       ],
       "questions": [
@@ -81,7 +88,7 @@ Part duoc ho tro:
           "questionText": "Where will the training take place?",
           "answers": [
             { "label": "A", "answerText": "Room 402", "isCorrect": true },
-            { "label": "B", "answerText": "Lobby", "isCorrect": false }
+            { "label": "B", "answerText": "The lobby", "isCorrect": false }
           ]
         }
       ]
@@ -90,33 +97,56 @@ Part duoc ho tro:
 }
 ```
 
-## CSV mau
+Passage and audio associations are resolved by case-insensitive keys within each part. A missing referenced key does not currently produce a validation error; the question is saved without that relationship.
 
-CSV gom moi dong la mot dap an. Nhieu dong co cung `partNumber` + `questionNumber` se duoc gom thanh mot cau hoi.
+## CSV package
+
+`CsvToeicImporter` treats each non-empty physical line as one row. Rows with the same `partNumber` and `questionNumber` become one question, and each row contributes an answer. Headers are normalized by removing non-alphanumeric characters and lowercasing them.
 
 ```csv
 title,description,sourceType,sourceName,sourceUrl,license,contentOwner,partNumber,partName,instructions,passageKey,passageTitle,passageContent,audioKey,audioUrl,audioLocalPath,audioTranscript,questionNumber,prompt,questionText,imageUrl,difficulty,explanation,answerLabel,answerText,isCorrect
-Admin TOEIC CSV,Original admin content,csv,Admin CSV,,Owned by admin,WordWave Admin,5,Incomplete Sentences,Choose the best answer.,,,,,,,,1,,The invoice was sent _____ email.,,easy,Use by for method.,A,by,true
-Admin TOEIC CSV,Original admin content,csv,Admin CSV,,Owned by admin,WordWave Admin,5,Incomplete Sentences,Choose the best answer.,,,,,,,,1,,The invoice was sent _____ email.,,easy,Use by for method.,B,on,false
-Admin TOEIC CSV,Original admin content,csv,Admin CSV,,Owned by admin,WordWave Admin,7,Reading Comprehension,Read and answer.,email-1,Office Email,The training starts at 10 a.m.,,,,,2,,When does the training start?,,easy,,A,10 a.m.,true
-Admin TOEIC CSV,Original admin content,csv,Admin CSV,,Owned by admin,WordWave Admin,7,Reading Comprehension,Read and answer.,email-1,Office Email,The training starts at 10 a.m.,,,,,2,,When does the training start?,,easy,,B,2 p.m.,false
+Admin TOEIC CSV,Original content,csv,Admin CSV,,Owned by administrator,WordWave Admin,5,Incomplete Sentences,Choose the best answer.,,,,,,,,1,,The invoice was sent _____ email.,,easy,Use by for method.,A,by,true
+Admin TOEIC CSV,Original content,csv,Admin CSV,,Owned by administrator,WordWave Admin,5,Incomplete Sentences,Choose the best answer.,,,,,,,,1,,The invoice was sent _____ email.,,easy,Use by for method.,B,on,false
 ```
 
-## Cach import
+The parser supports quoted commas and doubled quotes on a single line. It does not implement multiline quoted CSV fields.
 
-Admin API:
+## Validation and save behavior
 
-- `POST /api/admin/toeic/import/json`: upload multipart form field `file`.
-- `POST /api/admin/toeic/import/csv`: upload multipart form field `file`.
-- `POST /api/admin/toeic/crawl`: body `{ "keyword": "toeic", "sourceUrl": "https://example.com/allowed-toeic.json" }`.
-- `GET /api/admin/toeic/import-logs?page=1&limit=50`: xem log import.
+`ToeicImportPackageWriter.SaveAsync` enforces these rules:
 
-User API:
+- A title, source type, source name, license, and content owner are required.
+- At least one part is required, and valid part numbers are 1 through 7.
+- A question number must be greater than zero.
+- A question needs either `questionText` or `prompt`.
+- A question needs at least two answers and exactly one correct answer.
+- Every answer needs a non-empty label and text.
 
-- `GET /api/toeic/tests`
-- `GET /api/toeic/tests/{id}`
-- `GET /api/toeic/questions?part=1`
-- `POST /api/toeic/tests/{id}/submit`
+Invalid questions are skipped. If at least one question remains, the test is saved with status `partial`; if none remain, only a failure log is written. Valid imported tests are always assigned `IsPublic = true`.
+
+Parsing, network, deserialization, and database exceptions occur before or outside the validation-result path and are handled by the API's global 500 Problem Details response. Those exceptions are not guaranteed to create a TOEIC import log.
+
+## HTTP endpoints
+
+### Import administration
+
+| Method | Route | Input and result |
+| --- | --- | --- |
+| `POST` | `/api/admin/toeic/import/json` | Multipart field `file`, maximum request size 20 MB |
+| `POST` | `/api/admin/toeic/import/csv` | Multipart field `file`, maximum request size 20 MB |
+| `POST` | `/api/admin/toeic/crawl` | JSON `{ "keyword": "toeic", "sourceUrl": "https://..." }` |
+| `GET` | `/api/admin/toeic/import-logs?page=1&limit=50` | Paged import logs; limit range is 1 to 200 |
+
+The crawl request validates that `keyword` is present and at most 100 characters and that `sourceUrl` is a URL. The crawler itself requires an absolute HTTP or HTTPS URL. `keyword` is passed through the pipeline but is not used to filter the downloaded data.
+
+### Learner-facing TOEIC API
+
+| Method | Route | Behavior |
+| --- | --- | --- |
+| `GET` | `/api/toeic/tests` | Lists public tests with part/question counts |
+| `GET` | `/api/toeic/tests/{id}` | Returns one public test without correct-answer flags |
+| `GET` | `/api/toeic/questions?part=1` | Returns questions, optionally filtered to part 1-7 |
+| `POST` | `/api/toeic/tests/{id}/submit` | Scores submitted answer IDs and returns correct answers/explanations |
 
 Submit body:
 
@@ -129,24 +159,29 @@ Submit body:
 }
 ```
 
-## Cach them crawler source moi
+Duplicate submissions for the same question use the last answer. Unanswered questions count toward the denominator. Attempts and scores are not persisted.
 
-Kien truc hien tai dung adapter:
+## Crawler behavior
 
-- `IToeicImporter`: parser cho file do admin upload.
-- `JsonToeicImporter`: import JSON theo schema WordWave.
-- `CsvToeicImporter`: import CSV dang flat row.
-- `AiGeneratedToeicImporter`: adapter cho noi dung AI-generated da duoc admin kiem duyet.
-- `IToeicDataSourceCrawler`: interface crawler public source.
-- `WebsiteToeicCrawler`: crawler generic, kiem tra robots.txt va normalize JSON schema WordWave.
+`WebsiteToeicCrawler`:
 
-De them nguon moi:
+1. Validates an absolute HTTP or HTTPS source URL.
+2. Fetches `/robots.txt` from the source host.
+3. Refuses the crawl if the robots request fails or if its simple `User-agent: *`/`Disallow` parser rejects the path.
+4. Downloads the source URL as text.
+5. Deserializes it as the WordWave JSON package.
+6. Sends the normalized package to `ToeicImportPackageWriter`.
 
-1. Tao class moi implement `IToeicDataSourceCrawler` hoac `IToeicImporter`.
-2. Khong hard-code logic vao controller.
-3. Kiem tra robots.txt/terms truoc khi fetch.
-4. Normalize ve `ToeicImportPackage`.
-5. Goi `IToeicImportPackageWriter.SaveAsync(...)` de validate va luu DB.
-6. Dang ky adapter trong `Program.cs`.
+The current robots parser is intentionally small and does not implement the complete robots exclusion standard. The crawler has no host allowlist or private-network blocking, so arbitrary URL fetching is a security-sensitive area.
 
-Khuyen nghi: moi adapter source rieng nen co validation license/metadata rieng va test rieng.
+## Add an importer or crawler
+
+1. Read `IToeicImporter`, `IToeicDataSourceCrawler`, and `IToeicImportPackageWriter` under `backend/WordWave.Application/Interfaces/`.
+2. Normalize source-specific input into `ToeicImportPackage`; do not put parsing logic in a controller.
+3. Preserve source, license, and content-owner metadata.
+4. Delegate validation/persistence to `IToeicImportPackageWriter.SaveAsync`.
+5. Register the adapter in `backend/WordWave.Api/Program.cs`.
+6. Add application/infrastructure tests for parsing, validation, partial imports, and failure behavior.
+7. Coordinate any schema changes through an EF Core migration; never edit a generated migration or model snapshot by hand.
+
+Do not download or persist media files until a storage adapter, size/content validation, access policy, and licensing policy are explicitly designed. The current model only stores a URL or local-path string.

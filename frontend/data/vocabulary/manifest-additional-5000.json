@@ -1,0 +1,87 @@
+{
+  "generatedAt": "2026-11-16T15:58:24.284733+00:00",
+  "count": 5000,
+  "uniqueHeadwords": 5000,
+  "excludedHeadwords": 3000,
+  "baseDatasetSha256": "99bca315954d042bc67796406a016cb20b9f84b90bf25f2ac85f670360ce1f7e",
+  "datasetSha256": "fd1356b6c159a469416f34806eb1d5d7429b1545b1ec3c75b4af8608b78bc4e8",
+  "eligibleHeadwords": 12389,
+  "topics": {
+    "daily": 700,
+    "food": 111,
+    "travel": 25,
+    "work": 76,
+    "technology": 18,
+    "health": 63,
+    "education": 300,
+    "science": 149,
+    "society": 278,
+    "shopping": 31,
+    "family": 25,
+    "weather": 27,
+    "animals": 63,
+    "environment": 57,
+    "clothing": 42,
+    "personality": 6,
+    "emotions": 76,
+    "sports": 56,
+    "arts": 63,
+    "home": 266,
+    "finance": 122,
+    "transport": 42,
+    "communication": 398,
+    "numbers": 89,
+    "time": 62,
+    "people": 380,
+    "actions": 450,
+    "colors": 12,
+    "geography": 83,
+    "culture": 19,
+    "properties": 700,
+    "manner": 211
+  },
+  "levels": {
+    "A1": 142,
+    "A2": 268,
+    "B1": 621,
+    "B2": 647,
+    "C1": 210,
+    "C2": 62,
+    "N/A": 3050
+  },
+  "withBilingualUsageExamples": 1354,
+  "phoneticSources": {
+    "https://raw.githubusercontent.com/open-dict-data/ipa-dict/master/data/en_US.txt": 3757,
+    "wiktionary-entry": 1243
+  },
+  "sourceUrls": {
+    "wiktionary": "https://kaikki.org/viwiktionary/Ti%E1%BA%BFng%20Anh/kaikki.org-dictionary-Ti%E1%BA%BFngAnh.jsonl",
+    "cefrj": "https://raw.githubusercontent.com/openlanguageprofiles/olp-en-cefrj/master/cefrj-vocabulary-profile-1.5.csv",
+    "langmaster": "https://langmaster.edu.vn/tong-hop-3000-tu-vung-tieng-anh-thong-dung-theo-chu-de",
+    "octanove": "https://raw.githubusercontent.com/openlanguageprofiles/olp-en-cefrj/master/octanove-vocabulary-profile-c1c2-1.0.csv",
+    "ipaDict": "https://raw.githubusercontent.com/open-dict-data/ipa-dict/master/data/en_US.txt"
+  },
+  "sources": {
+    "wiktionary": {
+      "sha256": "248593db7aed76af9c06cd05f45b03a5d13d29af43bd862907a0325dd970addf",
+      "bytes": 114882953
+    },
+    "cefrj": {
+      "sha256": "b0dd3c635f1c9a4fdf1490c7e5b7c48e8bbe55b652ad0c9860a95f98e10ae498",
+      "bytes": 233214
+    },
+    "langmaster": {
+      "sha256": "c82c1c8bd1bf161e6a49f2020f4aa9b77ff7c9e8716b8cca1b038c981d96a820",
+      "bytes": 462694
+    },
+    "octanove": {
+      "sha256": "18c33a407f2f89f7b8de9671c6d45fe3ea0bce45e7d2d7dcaab48d73e0f7b380",
+      "bytes": 46462
+    },
+    "ipaDict": {
+      "sha256": "2af6f154a5c363275f052d1f85acedef38ed185ca9745aa4314be77f6b70de67",
+      "bytes": 3180267
+    }
+  },
+  "qualityNote": "Automated collection and topic classification; editorial review remains needed. N/A means no POS-matched reference CEFR, not an estimated level. IPA fallback uses one exact-headword reading only. Missing bilingual examples stay empty."
+}

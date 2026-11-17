@@ -3,9 +3,12 @@ import { state } from '../../application/state/appState.js';
 import { api } from '../../infrastructure/api/apiClient.js';
 import { shuffle, toast, confetti } from '../../shared/utils.js';
 
+let matchedIds = new Set();
+
 export async function initMatching() {
   try {
     const words = await api.getRandom({ count: 6 });
+    matchedIds = new Set();
     state.matchPairs        = words;
     state.matchSelected     = null;
     state.matchSelectedSide = null;
@@ -36,6 +39,7 @@ function renderMatching() {
 }
 
 window.selectMatch = function(side, id) {
+  if (matchedIds.has(id)) return;
   if (!state.matchSelected) {
     state.matchSelected     = id;
     state.matchSelectedSide = side;
@@ -55,11 +59,12 @@ window.selectMatch = function(side, id) {
   document.querySelectorAll('.match-item').forEach(e => e.classList.remove('selected'));
 
   if (leftId === rightId) {
+    matchedIds.add(leftId);
     document.getElementById('ml-' + leftId)?.classList.add('matched');
     document.getElementById('mr-' + rightId)?.classList.add('matched');
     state.matchCorrect++;
-    state.addXP(5);
-    toast('✓ Khớp! +5 XP', 'success');
+    api.submitReview(leftId, true).catch(() => toast('Chưa lưu được tiến độ nối từ.', 'error'));
+    toast('✓ Khớp! +10 XP', 'success');
     document.getElementById('match-score-bar').innerHTML =
       `<span style="font-size:13px;color:var(--text2);">Đã nối đúng: <strong style="color:var(--green);">${state.matchCorrect} / ${state.matchPairs.length}</strong></span>`;
     if (state.matchCorrect === state.matchPairs.length) {
@@ -72,6 +77,7 @@ window.selectMatch = function(side, id) {
       confetti();
     }
   } else {
+    api.submitReview(leftId, false).catch(() => toast('Chưa lưu được tiến độ nối từ.', 'error'));
     document.getElementById('ml-' + leftId)?.classList.add('wrong-match');
     document.getElementById('mr-' + rightId)?.classList.add('wrong-match');
     toast('✗ Không khớp!', 'error');

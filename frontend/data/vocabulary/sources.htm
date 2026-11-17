@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Nguồn dữ liệu từ vựng – WordWave</title>
+  <style>
+    :root { color-scheme: dark; --text2: #b5c1d3; --accent: #63b3ed; }
+    body { max-width: 860px; margin: auto; padding: 32px 24px; line-height: 1.8; background: #0a0e1a; color: #e2e8f0; font-family: system-ui, sans-serif; }
+    h1 { font-size: 26px; margin: 20px 0; } h2 { font-size: 19px; margin: 28px 0 12px; }
+    p, li { font-size: 15px; margin: 12px 0; color: var(--text2); } ul { padding-left: 24px; }
+    a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; overflow-wrap: anywhere; }
+    a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  </style>
+</head>
+<body>
+  <a href="/vocab">Về trang từ vựng</a>
+  <h1>Nguồn dữ liệu từ vựng</h1>
+  <p>Bộ từ vựng Anh–Việt của WordWave được tổng hợp, chuẩn hóa và phân nhóm từ các nguồn dưới đây. Mỗi mục trong tập dữ liệu tải xuống có liên kết từ điển, từ loại và mã nghĩa gốc để đối chiếu.</p>
+  <h2>Nghĩa tiếng Việt, phiên âm và ví dụ</h2>
+  <p>Ghi công <a href="https://vi.wiktionary.org/">các cộng tác viên Wiktionary tiếng Việt</a>, thông qua bản trích xuất <a href="https://kaikki.org/viwiktionary/Ti%E1%BA%BFng%20Anh/index.html">Kaikki / Wiktextract</a>. Nội dung từ điển được sử dụng theo <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>. Lịch sử tác giả và sửa đổi có trên từng trang Wiktionary.</p>
+  <p>Thay đổi của WordWave: chọn một nghĩa và từ loại cho mỗi từ, chuẩn hóa khoảng trắng, lọc nội dung không phù hợp và phân nhóm chủ đề. Ví dụ có thể là câu hoặc cụm từ. Mục chưa có ví dụ song ngữ phù hợp được để trống, không tạo câu hoặc bản dịch thay thế.</p>
+  <h2>Mức độ từ vựng</h2>
+  <p><a href="https://github.com/openlanguageprofiles/olp-en-cefrj">The CEFR-J Wordlist Version 1.5</a>. Compiled by Yukio Tono, Tono Laboratory, Tokyo University of Foreign Studies. Retrieved on 16/11/2026 from the Open Language Profiles mirror of <a href="https://www.cefr-j.org/download.html">CEFR-J</a>. Nguồn cho phép sử dụng nghiên cứu và thương mại với ghi công phù hợp.</p>
+  <p>Mức A1–B2 được đối chiếu theo từ và từ loại trong CEFR-J. Đây là mức của danh sách tham chiếu, không phải kết quả đánh giá trình độ cá nhân hay cam kết rằng mọi nghĩa của từ đều cùng mức.</p>
+  <p>Bộ bổ sung sử dụng thêm <a href="https://github.com/openlanguageprofiles/olp-en-cefrj">Octanove Vocabulary Profile C1/C2 v1.0</a> của Octanove Labs, theo CC BY-SA 4.0. Chỉ gán trình độ khi khớp từ và từ loại; mục chưa có mức tham chiếu được ghi “Chưa phân loại”.</p>
+  <p>Phiên âm còn thiếu được bổ sung từ <a href="https://github.com/open-dict-data/ipa-dict">ipa-dict</a> của dohliam (2016), phần tiếng Anh Mỹ dựa trên <a href="https://github.com/lingz/cmudict-ipa">cmudict-ipa</a> của lingz. Chỉ dùng mục khớp chính xác có một cách đọc; không tự tổng hợp phiên âm. Giấy phép MIT: <a href="licenses/ipa-dict-LICENSE.txt">ipa-dict</a> và <a href="licenses/cmudict-ipa-LICENSE.txt">cmudict-ipa</a>.</p>
+  <h2>Chủ đề và lựa chọn từ</h2>
+  <ul>
+    <li><a href="https://langmaster.edu.vn/tong-hop-3000-tu-vung-tieng-anh-thong-dung-theo-chu-de">Langmaster: từ vựng theo chủ đề</a> — tham khảo từ thuộc nhóm chủ đề nào; không sao chép bài viết, bảng dịch nghĩa hay phiên âm của nguồn này vào bộ dữ liệu.</li>
+    <li><a href="https://wordnet.princeton.edu/">Princeton WordNet 3.0</a> — hỗ trợ nhóm nghĩa và quan hệ khái niệm. Xem <a href="licenses/wordnet-LICENSE.txt">thông báo bản quyền và giấy phép WordNet</a>.</li>
+    <li><a href="https://github.com/rspeer/wordfreq">wordfreq</a> — Robyn Speer và các cộng tác viên; dùng để ưu tiên từ phổ biến. Dữ liệu dùng CC BY-SA 4.0, mã nguồn dùng Apache 2.0. Ghi công các tác giả SUBTLEX (Marc Brysbaert và cộng sự), Leeds Internet Corpus, Google Books Ngrams, Wikipedia, ParaCrawl, OPUS/OpenSubtitles cùng các nguồn nêu trong <a href="https://github.com/rspeer/wordfreq#license">thông báo của wordfreq</a>. SUBTLEX là dữ liệu được cung cấp tự do.</li>
+  </ul>
+  <p>Phân loại chủ đề được thực hiện tự động từ nguồn tham chiếu và quan hệ nghĩa; các từ nhiều nghĩa vẫn cần được biên tập tiếp khi sử dụng trong từng ngữ cảnh.</p>
+  <h2>Tải dữ liệu và giấy phép</h2>
+  <p>Bộ dữ liệu đã tổng hợp được chia sẻ theo <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>, giữ nguyên ghi công và điều kiện của các nguồn thành phần. Giấy phép dữ liệu không thay đổi giấy phép mã nguồn của phần mềm.</p>
+  <p><a href="words-additional-5000.json">Tải thêm 5.000 từ mới (JSON)</a> · <a href="manifest-additional-5000.json">Thống kê và nguồn của bộ bổ sung</a></p>
+  <p><a href="words-3000.json">Tải 3.000 từ và thông tin nguồn (JSON)</a> · <a href="manifest.json">Xem thống kê và mã kiểm tra dữ liệu</a></p>
+</body>
+</html>

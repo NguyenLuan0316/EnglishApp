@@ -11,6 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <ProjectReference Include="..\WordWave.Application\WordWave.Application.csproj" />
     <ProjectReference Include="..\WordWave.Domain\WordWave.Domain.csproj" />
   </ItemGroup>

@@ -4,14 +4,15 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>WordWave – Học Tiếng Anh</title>
-<link rel="icon" href="./assets/favicon.svg" type="image/svg+xml"/>
-<link rel="apple-touch-icon" href="./assets/logo.svg"/>
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml"/>
+<link rel="apple-touch-icon" href="/assets/logo.svg"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
-<link rel="stylesheet" href="css/style.css"/>
+<link rel="stylesheet" href="/css/style.css"/>
 </head>
-<body>
+<body data-auth="pending">
+<div id="auth-loading" class="auth-loading" role="status">Đang kiểm tra phiên đăng nhập…</div>
 
 <!-- TOAST -->
 <div id="toast" class="toast"></div>
@@ -74,10 +75,6 @@
         <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/></svg>
         Luyện Nghe
       </div>
-      <div class="nav-item" data-page="ielts" onclick="navigate('ielts')">
-        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5h6m-8 4h10M7 13h10M9 17h4M5 3h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2z"/></svg>
-        IELTS Mock Test
-      </div>
     </div>
     <div class="nav-group">
       <div class="nav-label">Theo dõi</div>
@@ -91,22 +88,19 @@
       </div>
     </div>
     <div class="nav-group">
-      <div class="nav-label">Admin</div>
-      <div class="nav-item" data-page="toeicAdmin" onclick="navigate('toeicAdmin')">
-        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7h16M4 12h16M4 17h10"/></svg>
-        TOEIC Crawl
-      </div>
+      <div class="nav-label" data-admin-only hidden>Quản trị</div>
+      <button class="nav-item" data-page="usersAdmin" data-admin-only hidden onclick="navigate('usersAdmin')" type="button">Quản lý tài khoản</button>
     </div>
   </div>
   <div class="sidebar-footer">
     <div class="streak-card">
-      <div class="streak-num" id="streak-display">7</div>
+      <div class="streak-num" id="streak-display">—</div>
       <div class="streak-label">🔥 ngày liên tiếp</div>
       <div style="margin-top:8px;">
         <div class="progress-track" style="height:4px;">
-          <div class="progress-fill" style="width:70%;background:var(--accent3);"></div>
+          <div class="progress-fill" id="sidebar-daily-progress" style="width:0%;background:var(--accent3);"></div>
         </div>
-        <div style="font-size:10px;color:var(--text3);margin-top:4px;">10 XP để level up</div>
+        <div id="sidebar-daily-remaining" style="font-size:12px;color:var(--text3);margin-top:4px;">Đang tải tiến độ…</div>
       </div>
     </div>
   </div>
@@ -120,28 +114,130 @@
       <span class="page-title" id="page-title">Dashboard</span>
     </div>
     <div class="topbar-right">
-      <div class="xp-pill">⚡ <span id="xp-display">0</span> XP</div>
-      <div class="level-pill">B1</div>
+      <div class="xp-pill">⚡ <span id="xp-display">—</span> XP</div>
       <div class="search-box" style="width:200px;">
         <svg width="14" height="14" fill="none" stroke="var(--text3)" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
         <input type="text" placeholder="Tìm từ vựng..." id="global-search" oninput="handleGlobalSearch(this.value)"/>
+      </div>
+      <div class="account-menu" id="account-menu">
+        <button class="account-trigger" id="account-menu-trigger" type="button" aria-expanded="false" aria-controls="account-menu-panel" aria-label="Tài khoản đăng nhập">
+          <svg class="account-person-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 21v-2a7 7 0 0 1 14 0v2"/></svg>
+          <span id="account-name"></span>
+          <svg class="account-chevron" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg>
+        </button>
+        <div class="account-menu-panel" id="account-menu-panel" hidden>
+          <div class="account-menu-identity"><span id="account-email"></span><span id="account-role"></span></div>
+          <button class="account-menu-action" id="account-password-button" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Đổi mật khẩu
+          </button>
+          <button class="account-menu-action account-menu-logout" id="logout-button" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 5H5v14h5M14 8l4 4-4 4M9 12h9"/></svg>Đăng xuất
+          </button>
+          <p id="logout-error" class="form-message" role="alert"></p>
+        </div>
       </div>
     </div>
   </div>
 
   <div class="content">
+    <section class="page auth-page" id="page-login" aria-labelledby="login-heading">
+      <div class="auth-panel">
+        <a href="/login" class="auth-brand"><img src="/assets/logo.svg" width="36" height="36" alt=""/>WordWave</a>
+        <h1 id="login-heading">Đăng nhập</h1>
+        <p class="auth-description">Tiếp tục học tiếng Anh và lưu lại tiến độ của bạn.</p>
+        <form id="login-form" class="auth-form">
+          <div class="form-field"><label for="login-email">Email</label><input id="login-email" name="email" type="email" autocomplete="username" maxlength="254" required placeholder="ban@example.com"/></div>
+          <div class="form-field"><label for="login-password">Mật khẩu</label><div class="password-field"><input id="login-password" name="password" type="password" autocomplete="current-password" maxlength="128" required/><button type="button" data-toggle-password="login-password" aria-controls="login-password" aria-pressed="false">Hiện</button></div></div>
+          <p class="form-message" role="alert" tabindex="-1"></p>
+          <button class="btn btn-primary" type="submit">Đăng nhập</button>
+        </form>
+        <p class="auth-switch">Chưa có tài khoản? <a href="/register">Tạo tài khoản học viên</a></p>
+      </div>
+    </section>
+    <section class="page auth-page" id="page-register" aria-labelledby="register-heading">
+      <div class="auth-panel">
+        <a href="/login" class="auth-brand"><img src="/assets/logo.svg" width="36" height="36" alt=""/>WordWave</a>
+        <h1 id="register-heading">Tạo tài khoản học viên</h1>
+        <p class="auth-description">Một tài khoản cho các bài học, luyện tập và kết quả của bạn.</p>
+        <form id="register-form" class="auth-form">
+          <div class="form-field"><label for="register-name">Tên hiển thị</label><input id="register-name" name="displayName" autocomplete="name" minlength="2" maxlength="100" required/></div>
+          <div class="form-field"><label for="register-email">Email</label><input id="register-email" name="email" type="email" autocomplete="username" maxlength="254" required placeholder="ban@example.com"/></div>
+          <div class="form-field"><label for="register-password">Mật khẩu</label><div class="password-field"><input id="register-password" name="password" type="password" autocomplete="new-password" minlength="10" maxlength="128" aria-describedby="register-password-hint" required/><button type="button" data-toggle-password="register-password" aria-controls="register-password" aria-pressed="false">Hiện</button></div><p id="register-password-hint" class="form-hint">Từ 10 đến 128 ký tự.</p></div>
+          <div class="form-field"><label for="register-confirm">Nhập lại mật khẩu</label><input id="register-confirm" name="confirmPassword" type="password" autocomplete="new-password" minlength="10" maxlength="128" required/></div>
+          <p class="form-message" role="alert" tabindex="-1"></p>
+          <button class="btn btn-primary" type="submit">Tạo tài khoản</button>
+        </form>
+        <p class="auth-switch">Đã có tài khoản? <a href="/login">Đăng nhập</a></p>
+      </div>
+    </section>
+    <section class="page" id="page-account" aria-labelledby="account-heading">
+      <div class="account-panel">
+        <h1 id="account-heading">Tài khoản của tôi</h1>
+        <dl class="account-details"><div><dt>Tên hiển thị</dt><dd id="profile-name"></dd></div><div><dt>Email</dt><dd id="profile-email"></dd></div><div><dt>Vai trò</dt><dd id="profile-role"></dd></div></dl>
+        <h2>Đổi mật khẩu</h2>
+        <p class="auth-description">Sau khi đổi mật khẩu, bạn cần đăng nhập lại trên các thiết bị.</p>
+        <form id="password-form" class="auth-form">
+          <div class="form-field"><label for="current-password">Mật khẩu hiện tại</label><input id="current-password" name="currentPassword" type="password" autocomplete="current-password" maxlength="128" required/></div>
+          <div class="form-field"><label for="new-password">Mật khẩu mới</label><input id="new-password" name="newPassword" type="password" autocomplete="new-password" minlength="10" maxlength="128" required/><p class="form-hint">Từ 10 đến 128 ký tự.</p></div>
+          <div class="form-field"><label for="confirm-new-password">Nhập lại mật khẩu mới</label><input id="confirm-new-password" name="confirmPassword" type="password" autocomplete="new-password" minlength="10" maxlength="128" required/></div>
+          <p class="form-message" role="alert" tabindex="-1"></p>
+          <button class="btn btn-primary" type="submit">Đổi mật khẩu</button>
+        </form>
+      </div>
+    </section>
+    <section class="page" id="page-usersAdmin" aria-labelledby="users-heading">
+      <div class="users-heading-row"><h1 id="users-heading">Quản lý tài khoản</h1><button id="users-add" class="btn btn-primary" type="button">Thêm tài khoản</button></div>
+      <p class="auth-description">Thêm, sửa, xóa tài khoản và đặt lại mật khẩu. Mọi thay đổi tài khoản sẽ yêu cầu người dùng đăng nhập lại.</p>
+      <p id="users-notice" class="form-message success" role="status"></p>
+      <section id="user-editor" class="user-editor" hidden aria-labelledby="user-editor-heading">
+        <h2 id="user-editor-heading" tabindex="-1">Thêm tài khoản</h2>
+        <form id="user-editor-form" class="auth-form">
+          <div class="user-editor-grid">
+            <div class="form-field"><label for="user-name">Tên hiển thị</label><input id="user-name" name="displayName" minlength="2" maxlength="100" required autocomplete="off"/></div>
+            <div class="form-field"><label for="user-email">Email</label><input id="user-email" name="email" type="email" maxlength="254" required autocomplete="off"/></div>
+            <div class="form-field"><label for="user-role">Vai trò</label><select id="user-role" name="role"><option value="Learner">Học viên</option><option value="Admin">Quản trị viên</option></select></div>
+            <label class="user-active"><input name="isActive" type="checkbox" checked/>Cho phép đăng nhập</label>
+            <div class="form-field" id="user-initial-password"><label for="user-password">Mật khẩu ban đầu</label><input id="user-password" name="password" type="password" minlength="10" maxlength="128" autocomplete="new-password" aria-describedby="user-password-hint"/><p id="user-password-hint" class="form-hint">Từ 10 đến 128 ký tự.</p></div>
+            <div class="form-field" id="user-initial-confirm"><label for="user-password-confirm">Nhập lại mật khẩu</label><input id="user-password-confirm" name="confirmPassword" type="password" minlength="10" maxlength="128" autocomplete="new-password"/></div>
+          </div>
+          <p class="form-message" role="alert" tabindex="-1"></p>
+          <div class="user-editor-actions"><button class="btn btn-primary" type="submit">Tạo tài khoản</button><button class="btn btn-ghost" id="user-editor-cancel" type="button">Hủy</button></div>
+        </form>
+      </section>
+      <section id="user-password-editor" class="user-editor" hidden aria-labelledby="user-password-heading">
+        <h2 id="user-password-heading" tabindex="-1">Đặt lại mật khẩu</h2>
+        <p id="user-password-target" class="auth-description"></p>
+        <p class="form-hint">Các phiên đăng nhập hiện tại sẽ bị thu hồi. Người dùng cần dùng mật khẩu mới để đăng nhập.</p>
+        <form id="user-reset-form" class="auth-form">
+          <div class="user-editor-grid"><div class="form-field"><label for="user-new-password">Mật khẩu mới</label><input id="user-new-password" name="newPassword" type="password" minlength="10" maxlength="128" required autocomplete="new-password"/><p class="form-hint">Từ 10 đến 128 ký tự.</p></div><div class="form-field"><label for="user-new-password-confirm">Nhập lại mật khẩu mới</label><input id="user-new-password-confirm" name="confirmPassword" type="password" minlength="10" maxlength="128" required autocomplete="new-password"/></div></div>
+          <p class="form-message" role="alert" tabindex="-1"></p>
+          <div class="user-editor-actions"><button class="btn btn-primary" type="submit">Đặt lại mật khẩu</button><button class="btn btn-ghost" id="user-password-cancel" type="button">Hủy</button></div>
+        </form>
+      </section>
+      <dialog id="user-delete-dialog" class="user-delete-dialog" aria-labelledby="user-delete-heading" aria-describedby="user-delete-description">
+        <h2 id="user-delete-heading">Xóa tài khoản?</h2><p id="user-delete-target"></p><p id="user-delete-description">Tài khoản, các phiên đăng nhập, tiến độ ôn tập và bài làm IELTS sẽ bị xóa vĩnh viễn. Thao tác này không thể hoàn tác.</p>
+        <form id="user-delete-form"><p class="form-message" role="alert" tabindex="-1"></p><div class="user-editor-actions"><button id="user-delete-cancel" class="btn btn-secondary" type="button" autofocus>Hủy</button><button class="btn btn-danger" type="submit">Xóa tài khoản</button></div></form>
+      </dialog>
+      <form class="users-search" id="users-search-form"><label for="users-search">Tìm tài khoản</label><div><input id="users-search" name="search" type="search" maxlength="100" placeholder="Tên hoặc email"/><button class="btn btn-secondary" type="submit">Tìm kiếm</button></div></form>
+      <p id="users-status" class="users-status" role="status"></p>
+      <button id="users-retry" class="btn btn-secondary" type="button" hidden>Thử lại</button>
+      <div class="users-table-wrap" tabindex="0" role="region" aria-label="Danh sách tài khoản"><table class="users-table"><thead><tr><th scope="col">Tài khoản</th><th scope="col">Vai trò</th><th scope="col">Trạng thái</th><th scope="col">Thao tác</th></tr></thead><tbody id="users-rows"></tbody></table></div>
+      <div class="users-pagination"><button id="users-prev" class="btn btn-ghost" type="button">Trang trước</button><button id="users-next" class="btn btn-ghost" type="button">Trang sau</button></div>
+    </section>
 
     <!-- DASHBOARD -->
     <div class="page active fade-in" id="page-dashboard">
       <div style="margin-bottom:24px;">
-        <h1 style="font-size:22px;font-weight:700;margin-bottom:4px;">Chào buổi sáng! 👋</h1>
-        <p style="color:var(--text2);font-size:14px;">Hôm nay hãy học thêm vài từ mới và ôn lại những từ cũ.</p>
+        <h1 id="dashboard-greeting" style="font-size:22px;font-weight:700;margin-bottom:4px;">Chào bạn!</h1>
+        <p style="color:var(--text2);font-size:14px;">Học từ mới, hiểu cấu trúc và luyện cách diễn đạt mỗi ngày.</p>
       </div>
+      <p id="dashboard-study-summary" class="learning-status" role="status">Đang tải tiến độ tài khoản…</p>
+      <button id="dashboard-retry" class="btn btn-secondary" type="button" hidden>Thử lại</button>
       <div class="grid-4" style="margin-bottom:24px;">
-        <div class="card card-sm"><div class="card-title">Từ đã học</div><div class="card-value" style="color:var(--accent);">121</div><div style="font-size:11px;color:var(--green);margin-top:4px;">↑ +12 hôm nay</div></div>
-        <div class="card card-sm"><div class="card-title">Tỷ lệ đúng</div><div class="card-value" style="color:var(--green);">84%</div><div style="font-size:11px;color:var(--text3);margin-top:4px;">7 ngày qua</div></div>
-        <div class="card card-sm"><div class="card-title">Streak</div><div class="card-value" style="color:var(--accent3);">7 🔥</div><div style="font-size:11px;color:var(--text3);margin-top:4px;">ngày liên tiếp</div></div>
-        <div class="card card-sm"><div class="card-title">Cần ôn hôm nay</div><div class="card-value" style="color:var(--purple);">12</div><div style="font-size:11px;color:var(--text3);margin-top:4px;">spaced repetition</div></div>
+        <div class="card card-sm"><div class="card-title">Từ vựng đã học</div><div class="card-value" id="dashboard-vocabulary">—</div></div>
+        <div class="card card-sm"><div class="card-title">Ngữ pháp đã học</div><div class="card-value" id="dashboard-grammar">—</div></div>
+        <div class="card card-sm"><div class="card-title">Mẫu câu đã học</div><div class="card-value" id="dashboard-patterns">—</div></div>
+        <div class="card card-sm"><div class="card-title">Bài học hôm nay</div><div class="card-value" id="dashboard-daily">—</div><button class="btn btn-ghost btn-sm" type="button" onclick="navigate('review')">Tiếp tục học</button></div>
       </div>
       <div class="grid-2" style="margin-bottom:24px;">
         <div class="card">
@@ -155,14 +251,13 @@
             <button class="btn btn-secondary" onclick="navigate('quiz')">📝 Quiz</button>
             <button class="btn btn-secondary" onclick="navigate('review')">🔄 Ôn tập</button>
             <button class="btn btn-secondary" onclick="navigate('listening')">🎧 Nghe</button>
-            <button class="btn btn-primary" onclick="navigate('ielts')">IELTS Mock</button>
           </div>
           <div style="padding:14px;background:rgba(99,179,237,0.08);border:1px solid var(--border);border-radius:var(--r2);">
             <div style="font-size:12px;color:var(--text3);margin-bottom:6px;">Từ hôm nay</div>
-            <div style="font-size:20px;font-weight:700;" id="wod-word">ambitious</div>
-            <div style="font-size:13px;color:var(--accent2);font-family:var(--mono);" id="wod-phonetic">/æmˈbɪʃəs/</div>
-            <div style="font-size:14px;color:var(--text2);margin-top:4px;" id="wod-meaning">có tham vọng</div>
-            <button class="btn btn-ghost btn-sm" style="margin-top:10px;" id="wod-speak" onclick="window._speak('ambitious')">🔊 Phát âm</button>
+            <div style="font-size:20px;font-weight:700;" id="wod-word">—</div>
+            <div style="font-size:13px;color:var(--accent2);font-family:var(--mono);" id="wod-phonetic"></div>
+            <div style="font-size:14px;color:var(--text2);margin-top:4px;" id="wod-meaning"></div>
+            <button class="btn btn-ghost btn-sm" style="margin-top:10px;" id="wod-speak" disabled>🔊 Phát âm</button>
           </div>
         </div>
       </div>
@@ -174,23 +269,28 @@
 
     <!-- VOCABULARY -->
     <div class="page fade-in" id="page-vocabulary">
+      <div class="collection-heading"><div><h1>Thư viện từ vựng</h1><p>Chọn một cuốn sách, khám phá từng chủ đề.</p></div><div class="collection-view-switch" id="vocab-view-switch" role="group" aria-label="Kiểu hiển thị từ vựng"></div></div>
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
         <div class="search-box" style="flex:1;min-width:200px;">
           <svg width="14" height="14" fill="none" stroke="var(--text3)" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-          <input type="text" placeholder="Tìm từ..." id="vocab-search" oninput="filterVocab()"/>
+          <input type="search" placeholder="Tìm chủ đề..." aria-label="Tìm chủ đề hoặc từ vựng" id="vocab-search" oninput="filterVocab()"/>
         </div>
         <select id="level-filter" onchange="filterVocab()" style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:8px 14px;color:var(--text);font-family:var(--font);font-size:14px;outline:none;">
           <option value="">Tất cả Level</option>
           <option value="A1">A1</option><option value="A2">A2</option>
-          <option value="B1">B1</option><option value="B2">B2</option><option value="C1">C1</option>
+          <option value="B1">B1</option><option value="B2">B2</option><option value="C1">C1</option><option value="C2">C2</option><option value="N/A">Chưa phân loại</option>
         </select>
         <select id="topic-filter" onchange="filterVocab()" style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:8px 14px;color:var(--text);font-family:var(--font);font-size:14px;outline:none;">
           <option value="">Tất cả Chủ đề</option>
         </select>
       </div>
       <div class="topic-grid" id="topic-filter-pills" style="margin-bottom:16px;"></div>
+      <div class="collection-drill" id="vocab-book-drill" hidden><button class="btn btn-ghost" id="vocab-back-to-books" type="button">← Tất cả chủ đề</button><h2 id="vocab-open-book-title" tabindex="-1"></h2></div>
+      <p class="collection-summary" id="vocab-books-summary" role="status"></p>
+      <div class="study-books-grid" id="vocab-books"></div>
       <div id="vocab-list" style="display:flex;flex-direction:column;gap:8px;"></div>
       <div id="vocab-pagination"></div>
+      <p class="vocabulary-attribution">Nguồn dữ liệu: Wiktionary, CEFR-J và các nguồn đối chiếu. <a href="/data/vocabulary/sources.htm" target="_blank" rel="noopener">Xem nguồn &amp; giấy phép</a></p>
       <div id="vocab-load-more" style="text-align:center;margin-top:20px;display:none;">
         <button class="btn btn-secondary" onclick="loadMoreVocab()">Tải thêm từ</button>
       </div>
@@ -198,17 +298,22 @@
 
     <!-- GRAMMAR -->
     <div class="page fade-in" id="page-grammar">
+      <div class="collection-heading"><div><h1>Thư viện ngữ pháp</h1><p>Từ những cấu trúc đầu tiên đến cách diễn đạt nâng cao.</p></div><div class="collection-view-switch" id="grammar-view-switch" role="group" aria-label="Kiểu hiển thị ngữ pháp"></div></div>
       <div class="search-box" style="margin-bottom:14px;max-width:420px;">
         <span>🔍</span>
         <input type="text" placeholder="Tìm ngữ pháp theo tên..." id="grammar-search" oninput="filterGrammarByName(this.value)"/>
       </div>
-      <div class="tabs" style="margin-bottom:20px;">
-        <div class="tab active" onclick="filterGrammarByLevel('all')">Tất cả</div>
-        <div class="tab" onclick="filterGrammarByLevel('A1')">A1</div>
-        <div class="tab" onclick="filterGrammarByLevel('A2')">A2</div>
-        <div class="tab" onclick="filterGrammarByLevel('B1')">B1</div>
-        <div class="tab" onclick="filterGrammarByLevel('B2')">B2+</div>
+      <div class="tabs" id="grammar-level-tabs" style="margin-bottom:20px;" role="group" aria-label="Lọc trình độ ngữ pháp">
+        <button class="tab active" type="button" data-level="all" onclick="filterGrammarByLevel('all')">Tất cả</button>
+        <button class="tab" type="button" data-level="A1" onclick="filterGrammarByLevel('A1')">A1</button>
+        <button class="tab" type="button" data-level="A2" onclick="filterGrammarByLevel('A2')">A2</button>
+        <button class="tab" type="button" data-level="B1" onclick="filterGrammarByLevel('B1')">B1</button>
+        <button class="tab" type="button" data-level="B2" onclick="filterGrammarByLevel('B2')">B2</button>
+        <button class="tab" type="button" data-level="C1" onclick="filterGrammarByLevel('C1')">C1</button>
       </div>
+      <div class="collection-drill" id="grammar-book-drill" hidden><button class="btn btn-ghost" id="grammar-back-to-books" type="button">← Tất cả trình độ</button><h2 id="grammar-open-book-title" tabindex="-1"></h2></div>
+      <p class="collection-summary" id="grammar-books-summary" role="status"></p>
+      <div class="study-books-grid study-books-grid--grammar" id="grammar-books"></div>
       <div id="grammar-list" style="display:flex;flex-direction:column;gap:12px;"></div>
       <div id="grammar-pagination"></div>
     </div>
@@ -237,7 +342,7 @@
           <select id="fc-level" onchange="initFlashcard()" style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:6px 12px;color:var(--text);font-family:var(--font);font-size:13px;outline:none;">
             <option value="">Tất cả</option>
             <option value="A1">A1</option><option value="A2">A2</option>
-            <option value="B1">B1</option><option value="B2">B2</option><option value="C1">C1</option>
+            <option value="B1">B1</option><option value="B2">B2</option><option value="C1">C1</option><option value="C2">C2</option><option value="N/A">Chưa phân loại</option>
           </select>
         </div>
         <div class="progress-track" style="height:6px;margin-bottom:20px;">
@@ -382,24 +487,32 @@
 
     <!-- REVIEW -->
     <div class="page fade-in" id="page-review">
-      <div style="max-width:640px;margin:0 auto;">
-        <div id="review-start-card" class="card" style="text-align:center;padding:28px;">
-          <div style="font-size:36px;font-weight:700;color:var(--accent3);" id="review-remaining">—</div>
-          <div style="font-size:14px;color:var(--text2);margin-top:4px;">từ cần ôn hôm nay</div>
-          <button class="btn btn-primary btn-lg" style="margin-top:20px;" onclick="startReview()">Bắt đầu ôn tập</button>
+      <div class="daily-learning">
+        <h1>Bài học hằng ngày</h1>
+        <p>Từ vựng, ngữ pháp và mẫu câu được chọn theo tiến độ riêng của bạn. Học nội dung mới và ôn lại những bài đến hạn.</p>
+        <p id="review-status" class="learning-status" role="status">Đang tải bài học…</p>
+        <div id="review-start-card" class="card">
+          <h2 id="review-remaining">—</h2>
+          <p id="review-breakdown"></p>
+          <button id="review-start" class="btn btn-primary" type="button" onclick="startReview()" disabled>Tiếp tục học</button>
         </div>
         <div id="review-area" style="display:none;"></div>
+        <div id="review-lessons" class="daily-lesson-list"></div>
+        <button id="review-retry" class="btn btn-secondary" type="button" hidden>Tải lại bài học</button>
       </div>
     </div>
 
     <!-- PROGRESS -->
     <div class="page fade-in" id="page-progress">
+      <p id="progress-status" class="learning-status" role="status">Đang tải tiến độ…</p>
+      <button id="progress-retry" class="btn btn-secondary" type="button" hidden>Thử lại</button>
       <div class="grid-4" style="margin-bottom:24px;">
-        <div class="card card-sm"><div class="card-title">Tổng từ đã học</div><div class="card-value" style="color:var(--accent);">121</div></div>
-        <div class="card card-sm"><div class="card-title">Tỷ lệ đúng TB</div><div class="card-value" style="color:var(--green);">84%</div></div>
-        <div class="card card-sm"><div class="card-title">Streak hiện tại</div><div class="card-value" style="color:var(--accent3);">7 🔥</div></div>
-        <div class="card card-sm"><div class="card-title">Tổng XP</div><div class="card-value" style="color:var(--purple);" id="xp-total">0</div></div>
+        <div class="card card-sm"><div class="card-title">Nội dung đã học</div><div class="card-value" id="progress-learned">—</div></div>
+        <div class="card card-sm"><div class="card-title">Tỷ lệ ghi nhớ</div><div class="card-value" id="progress-accuracy">—</div></div>
+        <div class="card card-sm"><div class="card-title">Ngày học liên tiếp</div><div class="card-value" id="progress-streak">—</div></div>
+        <div class="card card-sm"><div class="card-title">Tổng XP</div><div class="card-value" id="xp-total">—</div></div>
       </div>
+      <div id="progress-content-summary" class="learning-status"></div>
       <div class="grid-2" style="margin-bottom:24px;">
         <div class="card"><div class="section-title" style="margin-bottom:16px;">Tiến độ theo Level</div><div id="progress-level-bars" style="display:flex;flex-direction:column;gap:14px;"></div></div>
         <div class="card"><div class="section-title" style="margin-bottom:16px;">Tiến độ theo Chủ đề</div><div id="progress-topic-bars" style="display:flex;flex-direction:column;gap:12px;"></div></div>
@@ -467,17 +580,18 @@
 </div>
 
 <script type="module">
-import { initRouter, navigate, toggleSidebar } from './js/presentation/routing/router.js';
-import { filterVocab, setTopicFilter, loadMoreVocab } from './js/presentation/pages/vocabulary.js';
-import { filterGrammarByLevel, filterGrammarByName } from './js/presentation/pages/grammar.js';
-import { initFlashcard }  from './js/presentation/pages/flashcard.js';
-import { initQuiz }       from './js/presentation/pages/quiz.js';
-import { initMatching }   from './js/presentation/pages/matching.js';
-import { initBuilder }    from './js/presentation/pages/builder.js';
-import { initFillBlank }  from './js/presentation/pages/fillblank.js';
-import { initIelts }      from './js/presentation/pages/ielts.js';
-import { api }            from './js/infrastructure/api/apiClient.js';
-import { badgeClass }     from './js/shared/utils.js';
+import { initRouter, navigate, toggleSidebar } from '/js/presentation/routing/router.js';
+import { filterVocab, setTopicFilter, loadMoreVocab } from '/js/presentation/pages/vocabulary.js';
+import { filterGrammarByLevel, filterGrammarByName } from '/js/presentation/pages/grammar.js';
+import { initFlashcard }  from '/js/presentation/pages/flashcard.js';
+import { initQuiz }       from '/js/presentation/pages/quiz.js';
+import { initMatching }   from '/js/presentation/pages/matching.js';
+import { initBuilder }    from '/js/presentation/pages/builder.js';
+import { initFillBlank }  from '/js/presentation/pages/fillblank.js';
+import { initIelts }      from '/js/presentation/pages/ielts.js';
+import { api }            from '/js/infrastructure/api/apiClient.js';
+import { badgeClass, levelLabel }     from '/js/shared/utils.js';
+import { restoreSession, initAuthControls } from '/js/presentation/pages/auth.js';
 
 // Expose to window for onclick handlers in HTML
 window.navigate           = navigate;
@@ -505,7 +619,7 @@ window.handleGlobalSearch = function(q) {
             <div class="word-info">
               <div style="display:flex;align-items:center;gap:8px;">
                 <span class="word-english">${v.word}</span>
-                <span class="badge ${badgeClass(v.level)}">${v.level}</span>
+                <span class="badge ${badgeClass(v.level)}">${levelLabel(v.level)}</span>
               </div>
               <div class="word-phonetic">${v.phonetic}</div>
               <div class="word-meaning">${v.meaning}</div>
@@ -523,7 +637,19 @@ document.querySelectorAll('.modal-overlay').forEach(m =>
 );
 
 // Boot
-initRouter();
+initAuthControls();
+try {
+  await restoreSession();
+  initRouter();
+} catch (error) {
+  const loading = document.getElementById('auth-loading');
+  loading.textContent = error.message;
+  const retry = document.createElement('button');
+  retry.className = 'btn btn-primary';
+  retry.textContent = 'Thử lại';
+  retry.onclick = () => location.reload();
+  loading.append(retry);
+}
 </script>
 </body>
 </html>

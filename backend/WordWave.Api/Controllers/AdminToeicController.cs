@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using WordWave.Domain.Models;
 using WordWave.Api.Models.Requests;
 using WordWave.Application.Interfaces;
 
@@ -6,6 +8,7 @@ namespace WordWave.Api.Controllers;
 
 [ApiController]
 [Route("api/admin/toeic")]
+[Authorize(Roles = UserRoles.Admin)]
 public class AdminToeicController : ApiControllerBase
 {
     private readonly IToeicImportService _service;

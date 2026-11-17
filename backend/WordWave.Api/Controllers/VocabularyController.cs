@@ -31,6 +31,9 @@ public class VocabularyController : ApiControllerBase
     [HttpGet("topics")]
     public async Task<IActionResult> GetTopics() => Ok(await _service.GetTopicsAsync());
 
+    [HttpGet("topics/summary")]
+    public async Task<IActionResult> GetTopicSummaries([FromQuery] string? level) => Ok(await _service.GetTopicSummariesAsync(level));
+
     [HttpGet("{id:int}")]
     public async Task<IActionResult> GetById(int id)
     {

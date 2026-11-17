@@ -1,70 +1,125 @@
-// wordwave/frontend/js/pages/review.js
 import { state } from '../../application/state/appState.js';
 import { api } from '../../infrastructure/api/apiClient.js';
-import { speak, toast, confetti } from '../../shared/utils.js';
+import { escapePracticeText as escape } from '../../domain/practice.js';
+import { speak } from '../../shared/utils.js';
+
+const labels = { vocabulary: 'Từ vựng', grammar: 'Ngữ pháp', patterns: 'Mẫu câu' };
+let plan = null;
+let requestId = 0;
+let saving = false;
+let revealed = false;
 
 export async function initReview() {
+  const request = ++requestId;
+  const userId = state.userId;
+  plan = null;
+  saving = false;
+  document.getElementById('review-status').textContent = 'Đang tải bài học dành cho bạn…';
+  document.getElementById('review-remaining').textContent = '—';
+  document.getElementById('review-breakdown').textContent = '';
+  document.getElementById('review-lessons').replaceChildren();
+  document.getElementById('review-area').style.display = 'none';
+  document.getElementById('review-start-card').style.display = 'block';
+  document.getElementById('review-start').disabled = true;
+  const retry = document.getElementById('review-retry');
+  retry.hidden = true;
+  retry.onclick = initReview;
   try {
-    const words = await api.getDaily();
-    state.reviewWords = words;
-    document.getElementById('review-remaining').textContent = words.length;
-    document.getElementById('review-start-card').style.display = 'block';
-    document.getElementById('review-area').style.display        = 'none';
-  } catch(e) {
-    toast('Không thể tải danh sách ôn tập.', 'error');
+    const loaded = await api.getLearningDaily();
+    if (request !== requestId || state.userId !== userId) return;
+    plan = loaded;
+    renderPlan();
+  } catch (error) {
+    if (request !== requestId || state.userId !== userId) return;
+    document.getElementById('review-status').textContent = error.message || 'Không thể tải bài học. Vui lòng thử lại.';
+    retry.hidden = false;
   }
 }
 
+function renderPlan() {
+  const completed = plan.lessons.filter(lesson => lesson.completed).length;
+  const remaining = plan.lessons.length - completed;
+  document.getElementById('review-status').textContent = `Ngày ${plan.date.split('-').reverse().join('/')} · Lịch học theo giờ Việt Nam (UTC+7).`;
+  document.getElementById('review-remaining').textContent = plan.total ? `${completed}/${plan.total} bài đã hoàn thành` : 'Chưa có bài cần học hôm nay';
+  document.getElementById('review-breakdown').textContent = Object.entries(labels).map(([type, label]) => `${label}: ${plan.lessons.filter(lesson => lesson.contentType === type).length}`).join(' · ');
+  document.getElementById('review-start').disabled = remaining === 0;
+  document.getElementById('review-start').textContent = completed ? 'Tiếp tục học' : 'Bắt đầu học';
+  document.getElementById('review-lessons').innerHTML = plan.lessons.map(lesson => `
+    <div class="daily-lesson-row">
+      <div><strong>${escape(lesson.title)}</strong><p>${labels[lesson.contentType]} · ${lesson.isNew ? 'Bài mới' : 'Đến hạn ôn'}${lesson.level ? ` · ${escape(lesson.level)}` : ''}</p></div>
+      <span class="daily-lesson-state">${lesson.completed ? (lesson.correct ? 'Đã nhớ' : 'Sẽ ôn lại') : 'Chưa học'}</span>
+    </div>`).join('');
+}
+
 window.startReview = function() {
-  state.reviewIndex = 0;
+  if (!plan || saving) return;
   document.getElementById('review-start-card').style.display = 'none';
-  document.getElementById('review-area').style.display        = 'block';
+  document.getElementById('review-area').style.display = 'block';
   renderReviewCard();
 };
 
 function renderReviewCard() {
-  const w   = state.reviewWords[state.reviewIndex];
-  const el  = document.getElementById('review-area');
-  if (!w) {
-    el.innerHTML = `
-      <div class="card" style="text-align:center;padding:40px;">
-        <div style="font-size:40px;margin-bottom:8px;">🎉</div>
-        <div style="font-size:20px;font-weight:700;">Ôn tập hoàn thành!</div>
-        <div style="font-size:14px;color:var(--text2);margin-top:4px;">Bạn đã ôn xong ${state.reviewWords.length} từ hôm nay</div>
-      </div>`;
-    confetti();
+  revealed = false;
+  const lesson = plan.lessons.find(item => !item.completed);
+  const area = document.getElementById('review-area');
+  if (!lesson) {
+    area.innerHTML = '<div class="card daily-study-card"><h2>Đã hoàn thành bài học hôm nay</h2><p>Tiến độ đã được lưu vào tài khoản. Bạn có thể tiếp tục luyện tập hoặc quay lại xem lịch học vào ngày mai.</p></div>';
     return;
   }
-  const pct = Math.round(state.reviewIndex / Math.max(state.reviewWords.length, 1) * 100);
-  el.innerHTML = `
-    <div style="margin-bottom:12px;">
-      <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
-        <span style="font-size:13px;color:var(--text2);">${state.reviewIndex + 1} / ${state.reviewWords.length}</span>
-        <span style="font-size:13px;color:var(--accent);">${pct}%</span>
+  area.innerHTML = `
+    <section class="card daily-study-card" aria-labelledby="daily-lesson-title">
+      <p>${labels[lesson.contentType]} · ${lesson.isNew ? 'Học mới' : 'Ôn tập'}</p>
+      <h2 id="daily-lesson-title" tabindex="-1">${escape(lesson.title)}</h2>
+      <button class="btn btn-ghost" id="daily-speak" type="button">Nghe phát âm</button>
+      <p>${lesson.isNew ? 'Đọc và nghe nội dung, sau đó tự kiểm tra khả năng ghi nhớ.' : 'Thử nhớ lại ý nghĩa hoặc cấu trúc trước khi xem nội dung.'}</p>
+      <button class="btn btn-secondary" id="daily-reveal" type="button">${lesson.isNew ? 'Xem bài học' : 'Xem lại nội dung'}</button>
+      <div id="daily-lesson-body" hidden>
+        <div class="lesson-detail">${escape(lesson.meaning)}</div>
+        <div class="lesson-detail">${escape(lesson.detail)}</div>
+        ${lesson.examples.map(example => `<p class="lesson-example">${escape(example)}</p>`).join('')}
+        <p>Tự đánh giá sau khi học:</p>
+        <div class="lesson-actions">
+          <button class="btn btn-secondary" type="button" data-daily-answer="false">Cần ôn lại</button>
+          <button class="btn btn-primary" type="button" data-daily-answer="true">Đã nhớ</button>
+        </div>
       </div>
-      <div class="progress-track" style="height:6px;"><div class="progress-fill" style="width:${pct}%;background:var(--accent);"></div></div>
-    </div>
-    <div class="card" style="text-align:center;padding:32px;margin-bottom:16px;">
-      <div style="font-size:36px;font-weight:700;margin-bottom:6px;">${w.word}</div>
-      <div style="font-size:15px;color:var(--accent2);font-family:var(--mono);margin-bottom:8px;">${w.phonetic}</div>
-      <button class="btn btn-ghost btn-sm" onclick="window._speak('${w.word.replace(/'/g,"\\'")}')">🔊 Nghe</button>
-    </div>
-    <p style="text-align:center;font-size:13px;color:var(--text3);margin-bottom:12px;">Bạn có nhớ từ này không?</p>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-      <button class="btn btn-danger"  onclick="reviewAnswer(false)">✗ Không nhớ</button>
-      <button class="btn btn-success" onclick="reviewAnswer(true)">✓ Nhớ rồi</button>
-    </div>`;
+      <p class="lesson-feedback" id="daily-save-feedback" role="status"></p>
+    </section>`;
+  document.getElementById('daily-speak').hidden = lesson.contentType === 'grammar';
+  document.getElementById('daily-speak').onclick = () => speak(lesson.title);
+  document.getElementById('daily-reveal').onclick = event => {
+    revealed = true;
+    document.getElementById('daily-lesson-body').hidden = false;
+    event.currentTarget.hidden = true;
+  };
+  area.querySelectorAll('[data-daily-answer]').forEach(button => {
+    button.onclick = () => submitLesson(lesson, button.dataset.dailyAnswer === 'true');
+  });
+  document.getElementById('daily-lesson-title').focus();
 }
 
-window.reviewAnswer = async function(correct) {
-  const w = state.reviewWords[state.reviewIndex];
-  if (correct) {
-    toast(`✓ ${w.meaning}`, 'success');
-    state.addXP(5);
-  } else {
-    toast(`✗ Nghĩa là: ${w.meaning}`, 'error');
+async function submitLesson(lesson, correct) {
+  if (saving || !revealed || lesson.completed) return;
+  const request = requestId;
+  const userId = state.userId;
+  saving = true;
+  const feedback = document.getElementById('daily-save-feedback');
+  const buttons = [...document.querySelectorAll('[data-daily-answer]')];
+  buttons.forEach(button => { button.disabled = true; });
+  feedback.textContent = 'Đang lưu tiến độ…';
+  try {
+    await api.submitLearning({ contentType: lesson.contentType, contentId: lesson.contentId, correct, daily: true });
+    if (request !== requestId || state.userId !== userId) return;
+    lesson.completed = true;
+    lesson.correct = correct;
+    renderPlan();
+    renderReviewCard();
+  } catch (error) {
+    if (request !== requestId || state.userId !== userId) return;
+    feedback.textContent = `Chưa lưu được: ${error.message}. Bạn có thể bấm lại để thử.`;
+    document.getElementById('review-retry').hidden = false;
+    buttons.forEach(button => { button.disabled = false; });
+  } finally {
+    if (request === requestId) saving = false;
   }
-  try { await api.submitReview(w.id, correct); } catch(e) {}
-  state.reviewIndex++;
-  setTimeout(renderReviewCard, 800);
-};
+}

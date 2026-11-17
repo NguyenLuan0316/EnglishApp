@@ -24,6 +24,7 @@
     <ProjectReference Include="..\WordWave.Infrastructure\WordWave.Infrastructure.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Data\daily-patterns.json" />
     <Folder Include="Data\" />
   </ItemGroup>
 </Project>

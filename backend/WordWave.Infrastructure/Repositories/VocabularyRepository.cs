@@ -49,6 +49,19 @@ public class VocabularyRepository : IVocabularyRepository
         .OrderBy(topic => topic)
         .ToListAsync();
 
+    public async Task<List<VocabularyTopicSummaryDto>> GetTopicSummariesAsync(string? level)
+    {
+        var query = _db.Vocabulary.AsNoTracking().Where(w => !string.IsNullOrWhiteSpace(w.Topic));
+        if (!string.IsNullOrWhiteSpace(level))
+        {
+            query = query.Where(w => w.Level == level);
+        }
+        var counts = await query.GroupBy(w => w.Topic).Select(group => new { Topic = group.Key, Count = group.Count() }).OrderBy(group => group.Topic).ToListAsync();
+        var levels = await query.Select(w => new { w.Topic, w.Level }).Distinct().ToListAsync();
+        var groupedLevels = levels.GroupBy(w => w.Topic).ToDictionary(group => group.Key, group => group.Select(w => w.Level).Where(value => !string.IsNullOrWhiteSpace(value)).OrderBy(value => value).ToList());
+        return counts.Select(group => new VocabularyTopicSummaryDto(group.Topic, group.Count, groupedLevels[group.Topic])).ToList();
+    }
+
     public Task<VocabWord?> GetByIdAsync(int id) => _db.Vocabulary.FindAsync(id).AsTask().ContinueWith(t => (VocabWord?)t.Result);
 
     public Task<List<VocabWord>> GetAllAsync() => _db.Vocabulary.ToListAsync();

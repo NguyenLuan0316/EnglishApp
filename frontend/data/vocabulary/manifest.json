@@ -1,0 +1,83 @@
+{
+  "generatedAt": "2026-11-16T14:59:42.230242+00:00",
+  "count": 3000,
+  "uniqueHeadwords": 3000,
+  "topics": {
+    "daily": 315,
+    "food": 103,
+    "travel": 51,
+    "work": 95,
+    "technology": 9,
+    "health": 70,
+    "education": 223,
+    "science": 58,
+    "society": 162,
+    "shopping": 78,
+    "family": 25,
+    "weather": 26,
+    "animals": 50,
+    "environment": 30,
+    "clothing": 33,
+    "personality": 19,
+    "emotions": 71,
+    "sports": 28,
+    "arts": 76,
+    "home": 164,
+    "finance": 76,
+    "transport": 36,
+    "communication": 207,
+    "numbers": 51,
+    "time": 74,
+    "people": 83,
+    "actions": 215,
+    "colors": 13,
+    "geography": 58,
+    "culture": 16,
+    "properties": 309,
+    "manner": 176
+  },
+  "levels": {
+    "A1": 722,
+    "A2": 718,
+    "B1": 932,
+    "B2": 628
+  },
+  "withBilingualUsageExamples": 1528,
+  "eligibleHeadwords": 3366,
+  "rejected": {
+    "unmatched_part_of_speech": 2993,
+    "missing_gloss_ipa_or_low_frequency": 3323
+  },
+  "topicMethods": {
+    "general-vocabulary": 309,
+    "langmaster-reference": 393,
+    "wordwave-topic-rule": 179,
+    "cefrj-theme": 530,
+    "wordnet-lexname": 1143,
+    "wordnet-hypernym": 13,
+    "part-of-speech": 433
+  },
+  "datasetSha256": "99bca315954d042bc67796406a016cb20b9f84b90bf25f2ac85f670360ce1f7e",
+  "sources": {
+    "wiktionary": {
+      "sha256": "248593db7aed76af9c06cd05f45b03a5d13d29af43bd862907a0325dd970addf",
+      "bytes": 114882953
+    },
+    "cefrj": {
+      "sha256": "b0dd3c635f1c9a4fdf1490c7e5b7c48e8bbe55b652ad0c9860a95f98e10ae498",
+      "bytes": 233214
+    },
+    "langmaster": {
+      "sha256": "c82c1c8bd1bf161e6a49f2020f4aa9b77ff7c9e8716b8cca1b038c981d96a820",
+      "bytes": 462694
+    }
+  },
+  "sourceUrls": {
+    "wiktionary": "https://kaikki.org/viwiktionary/Ti%E1%BA%BFng%20Anh/kaikki.org-dictionary-Ti%E1%BA%BFngAnh.jsonl",
+    "cefrj": "https://raw.githubusercontent.com/openlanguageprofiles/olp-en-cefrj/master/cefrj-vocabulary-profile-1.5.csv",
+    "langmaster": "https://langmaster.edu.vn/tong-hop-3000-tu-vung-tieng-anh-thong-dung-theo-chu-de",
+    "wordnet": "https://wordnet.princeton.edu/",
+    "wordfreq": "https://github.com/rspeer/wordfreq"
+  },
+  "qualityNote": "Automatically collected and classified. CEFR-J is matched by POS; topic/sense selection needs editorial review. Usage examples may be phrases. Missing examples are empty, never generated."
+}

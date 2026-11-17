@@ -1,58 +1,59 @@
-// wordwave/frontend/js/pages/progress.js
 import { topicLabel } from '../../domain/vocabulary.js';
 import { api } from '../../infrastructure/api/apiClient.js';
-import { toast, levelColor } from '../../shared/utils.js';
+import { state } from '../../application/state/appState.js';
+import { escapePracticeText as escape } from '../../domain/practice.js';
+import { levelColor } from '../../shared/utils.js';
+
+let requestId = 0;
+function renderBars(container, groups, label, color) {
+  document.getElementById(container).innerHTML = Object.entries(groups).map(([key, data]) => {
+    const percent = data.total ? Math.round(data.learned / data.total * 100) : 0;
+    return `<div><div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span>${escape(label(key))}</span><span>${data.learned}/${data.total} (${percent}%)</span></div><div class="progress-track" style="height:8px;"><div class="progress-fill" style="width:${percent}%;background:${color(key)};"></div></div></div>`;
+  }).join('') || 'Chưa có dữ liệu.';
+}
+
+function renderProgress(summary) {
+  document.getElementById('progress-learned').textContent = summary.totalLearned;
+  document.getElementById('progress-accuracy').textContent = summary.attempts ? `${Math.round(summary.correctCount / summary.attempts * 100)}%` : '—';
+  document.getElementById('progress-streak').textContent = summary.streak;
+  document.getElementById('xp-total').textContent = summary.totalXp;
+  document.getElementById('progress-status').textContent = 'Tiến độ được lưu theo tài khoản. “Đã học” là nội dung có ít nhất một lượt nhớ đúng.';
+  const labels = { vocabulary: 'Từ vựng', grammar: 'Ngữ pháp', patterns: 'Mẫu câu' };
+  document.getElementById('progress-content-summary').textContent = Object.entries(labels).map(([type, label]) => `${label}: ${summary.byContent[type]?.learned ?? 0}/${summary.byContent[type]?.total ?? 0}`).join(' · ');
+  renderBars('progress-level-bars', summary.byLevel, key => key, levelColor);
+  renderBars('progress-topic-bars', summary.byTopic, topicLabel, () => 'var(--accent)');
+  const activity = new Map(summary.activity.map(day => [day.date, day.attempts]));
+  const end = new Date(`${summary.date}T00:00:00Z`);
+  const cells = Array.from({ length: 364 }, (_, index) => {
+    const date = new Date(end.getTime() - (363 - index) * 86400000).toISOString().slice(0, 10);
+    const count = activity.get(date) || 0;
+    const opacity = count ? Math.min(1, 0.25 + count / 20) : 1;
+    return `<div class="heat-cell" style="background:${count ? 'var(--accent)' : 'var(--bg3)'};opacity:${opacity};" title="${date}: ${count} lượt học"></div>`;
+  });
+  document.getElementById('activity-heatmap').innerHTML = `<div class="heatmap">${cells.join('')}</div>`;
+}
 
 export async function initProgress() {
-  let prog = null;
-  try { prog = await api.getProgress(); } catch(e) {}
-
-  // Fallback mock nếu API chưa có dữ liệu
-  const byLevel = prog?.byLevel || {
-    A1:{ Total:50, Learned:42 }, A2:{ Total:75, Learned:31 },
-    B1:{ Total:88, Learned:28 }, B2:{ Total:50, Learned:15 }, C1:{ Total:37, Learned:5 }
-  };
-
-  // Level bars
-  const lbEl = document.getElementById('progress-level-bars');
-  if (lbEl) lbEl.innerHTML = Object.entries(byLevel).map(([lv, d]) => {
-    const pct = Math.round((d.Learned || d.learned || 0) / (d.Total || d.total || 1) * 100);
-    return `<div>
-      <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
-        <span style="font-size:13px;font-weight:600;">${lv}</span>
-        <span style="font-size:12px;color:var(--text3);">${d.Learned ?? d.learned}/${d.Total ?? d.total} (${pct}%)</span>
-      </div>
-      <div class="progress-track" style="height:10px;">
-        <div class="progress-fill" style="width:${pct}%;background:${levelColor(lv)};"></div>
-      </div>
-    </div>`;
-  }).join('');
-
-  // Topic bars (mock)
-  const topics = { daily:{l:55,t:80}, food:{l:28,t:40}, travel:{l:20,t:40},
-    work:{l:35,t:60}, technology:{l:18,t:30}, health:{l:15,t:25} };
-  const tbEl = document.getElementById('progress-topic-bars');
-  if (tbEl) tbEl.innerHTML = Object.entries(topics).map(([t, d]) => {
-    const pct = Math.round(d.l / d.t * 100);
-    return `<div>
-      <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
-        <span style="font-size:12px;color:var(--text2);">${topicLabel(t)}</span>
-        <span style="font-size:11px;color:var(--text3);">${pct}%</span>
-      </div>
-      <div class="progress-track" style="height:6px;">
-        <div class="progress-fill" style="width:${pct}%;background:var(--accent);"></div>
-      </div>
-    </div>`;
-  }).join('');
-
-  // Heatmap
-  const hEl = document.getElementById('activity-heatmap');
-  if (hEl) {
-    const cells = Array.from({length: 364}, (_, i) => {
-      const v = Math.random();
-      const c = v < 0.3 ? 'var(--bg3)' : v < 0.5 ? 'rgba(99,179,237,0.2)' : v < 0.7 ? 'rgba(99,179,237,0.45)' : v < 0.9 ? 'rgba(99,179,237,0.7)' : 'var(--accent)';
-      return `<div class="heat-cell" style="background:${c};" title="Ngày ${i+1}"></div>`;
-    });
-    hEl.innerHTML = `<div class="heatmap">${cells.join('')}</div>`;
+  const request = ++requestId;
+  const userId = state.userId;
+  document.getElementById('progress-status').textContent = 'Đang tải tiến độ…';
+  for (const id of ['progress-learned', 'progress-accuracy', 'progress-streak', 'xp-total']) document.getElementById(id).textContent = '—';
+  for (const id of ['progress-content-summary', 'progress-level-bars', 'progress-topic-bars', 'activity-heatmap']) document.getElementById(id).replaceChildren();
+  const retry = document.getElementById('progress-retry');
+  retry.hidden = true;
+  retry.onclick = initProgress;
+  try {
+    const summary = await api.getLearningProgress();
+    if (request !== requestId || state.userId !== userId) return;
+    state.applyLearningSummary(summary);
+    renderProgress(summary);
+  } catch (error) {
+    if (request !== requestId || state.userId !== userId) return;
+    document.getElementById('progress-status').textContent = error.message || 'Không thể tải tiến độ. Vui lòng thử lại.';
+    retry.hidden = false;
   }
 }
+
+window.addEventListener('wordwave:learning-updated', event => {
+  if (document.getElementById('page-progress')?.classList.contains('active')) renderProgress(event.detail);
+});

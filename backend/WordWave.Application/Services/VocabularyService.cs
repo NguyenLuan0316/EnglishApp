@@ -21,6 +21,7 @@ public class VocabularyService : IVocabularyService
     public Task<List<VocabWord>> GetRandomAsync(string? level, string? topic, int count = 10) => _repo.GetRandomAsync(level, topic, count);
 
     public Task<List<string>> GetTopicsAsync() => _repo.GetTopicsAsync();
+    public Task<List<VocabularyTopicSummaryDto>> GetTopicSummariesAsync(string? level) => _repo.GetTopicSummariesAsync(level);
 
     public Task<VocabWord?> GetByIdAsync(int id) => _repo.GetByIdAsync(id);
 

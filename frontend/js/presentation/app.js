@@ -1,5 +1,5 @@
 import { api } from '../infrastructure/api/apiClient.js';
-import { badgeClass } from '../shared/utils.js';
+import { badgeClass, levelLabel } from '../shared/utils.js';
 import { initBuilder } from './pages/builder.js';
 import { initFillBlank } from './pages/fillblank.js';
 import { initFlashcard } from './pages/flashcard.js';
@@ -9,6 +9,7 @@ import { initMatching } from './pages/matching.js';
 import { initQuiz } from './pages/quiz.js';
 import { filterVocab, loadMoreVocab, setTopicFilter } from './pages/vocabulary.js';
 import { initRouter, navigate, toggleSidebar } from './routing/router.js';
+import { restoreSession, initAuthControls } from './pages/auth.js';
 
 window.navigate = navigate;
 window.toggleSidebar = toggleSidebar;
@@ -37,7 +38,7 @@ window.handleGlobalSearch = function(q) {
             <div class="word-info">
               <div style="display:flex;align-items:center;gap:8px;">
                 <span class="word-english">${v.word}</span>
-                <span class="badge ${badgeClass(v.level)}">${v.level}</span>
+                <span class="badge ${badgeClass(v.level)}">${levelLabel(v.level)}</span>
               </div>
               <div class="word-phonetic">${v.phonetic}</div>
               <div class="word-meaning">${v.meaning}</div>
@@ -55,4 +56,6 @@ document.querySelectorAll('.modal-overlay').forEach(modal =>
   })
 );
 
+initAuthControls();
+await restoreSession();
 initRouter();

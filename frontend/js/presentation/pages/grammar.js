@@ -2,19 +2,32 @@
 import { api } from '../../infrastructure/api/apiClient.js';
 import { renderPagination } from '../components/pagination.js';
 import { toast, badgeClass } from '../../shared/utils.js';
+import { bindViewSwitcher, readView, rememberView, renderStudyBook, renderCollectionMessage, searchKey } from '../components/studyBooks.js';
 
 let lessons = [];
 let currentLevel = 'all';
 let currentSearch = '';
 let currentPage = 1;
 let pageSize = 6;
+let view = readView('ww_grammar_view');
+let openedLevel = '';
+const bookLevels = ['A1', 'A2', 'B1', 'B2', 'C1'];
+const levelNames = { A1: 'Nền tảng A1', A2: 'Củng cố A2', B1: 'Mở rộng B1', B2: 'Nâng cao B2', C1: 'Chuyên sâu C1' };
 
 export async function initGrammar() {
+  syncView();
+  document.getElementById('grammar-back-to-books').onclick = () => {
+    const previousLevel = openedLevel;
+    setView('books', false);
+    [...document.querySelectorAll('#grammar-books [data-book-key]')].find(button => button.dataset.bookKey === previousLevel)?.focus();
+  };
   if (lessons.length === 0) {
+    const containerId = view === 'books' ? 'grammar-books' : 'grammar-list';
+    renderCollectionMessage(containerId, 'Đang tải thư viện ngữ pháp…');
     try {
       lessons = await api.getGrammar();
-    } catch {
-      toast('Không thể tải ngữ pháp. Kiểm tra kết nối API.', 'error');
+    } catch (error) {
+      renderCollectionMessage(containerId, error.message || 'Không thể tải ngữ pháp. Kiểm tra kết nối và thử lại.', initGrammar);
       return;
     }
   }
@@ -22,10 +35,69 @@ export async function initGrammar() {
   renderGrammarPage(1);
 }
 
+function syncView() {
+  const books = view === 'books';
+  bindViewSwitcher('grammar-view-switch', view, 'Theo trình độ', next => {
+    setView(next);
+    document.querySelector(`#grammar-view-switch [data-view="${next}"]`)?.focus();
+  });
+  document.getElementById('grammar-books').hidden = !books;
+  document.getElementById('grammar-books-summary').hidden = !books;
+  document.getElementById('grammar-list').hidden = books;
+  document.getElementById('grammar-pagination').hidden = books;
+  document.getElementById('grammar-level-tabs').hidden = books;
+  document.getElementById('grammar-book-drill').hidden = books || !openedLevel;
+  document.getElementById('grammar-search').placeholder = books ? 'Tìm bài học hoặc trình độ...' : 'Tìm ngữ pháp theo tên...';
+  document.querySelectorAll('#grammar-level-tabs [data-level]').forEach(button => {
+    button.classList.toggle('active', button.dataset.level === currentLevel);
+    button.setAttribute('aria-pressed', String(button.dataset.level === currentLevel));
+  });
+}
+
+function setView(next, persist = true) {
+  view = next === 'list' ? 'list' : 'books';
+  if (persist) { rememberView('ww_grammar_view', view); openedLevel = ''; }
+  syncView();
+  renderGrammarPage(1);
+}
+
+function renderBooks() {
+  const data = bookLevels.map((level, index) => {
+    const searchMatchesLevel = currentSearch && normalizeSearch(level + ' ' + levelNames[level]).includes(currentSearch);
+    const matchingLessons = lessons.filter(lesson => lesson.level === level && (!currentSearch || searchMatchesLevel || matchesSearch(lesson)));
+    return { key: level, title: levelNames[level], count: matchingLessons.length, kind: 'grammar', index };
+  }).filter(book => !currentSearch || normalizeSearch(book.key + ' ' + book.title).includes(currentSearch) || book.count > 0);
+  const count = data.reduce((sum, book) => sum + book.count, 0);
+  document.getElementById('grammar-books-summary').textContent = `${count} bài học · ${data.filter(book => book.count > 0).length} trình độ có nội dung`;
+  if (!data.length) {
+    renderCollectionMessage('grammar-books', 'Không tìm thấy bài học phù hợp. Thử tên khác hoặc xóa từ khóa.');
+    return;
+  }
+  const container = document.getElementById('grammar-books');
+  container.innerHTML = data.map(renderStudyBook).join('');
+  container.querySelectorAll('[data-book-key]:not(:disabled)').forEach(button => {
+    button.onclick = () => {
+      openedLevel = button.dataset.bookKey;
+      currentLevel = openedLevel;
+      if (normalizeSearch(openedLevel + ' ' + levelNames[openedLevel]).includes(currentSearch)) {
+        currentSearch = '';
+        document.getElementById('grammar-search').value = '';
+      }
+      document.getElementById('grammar-open-book-title').textContent = `Ngữ pháp ${openedLevel}`;
+      setView('list', false);
+      document.getElementById('grammar-open-book-title').focus();
+    };
+  });
+}
+
+function matchesSearch(grammar) {
+  return !currentSearch || normalizeSearch(grammar.title).includes(currentSearch) || normalizeSearch(getGrammarMeta(grammar).nameVi).includes(currentSearch);
+}
+
 export function filterGrammarByLevel(level) {
-  document.querySelectorAll('#page-grammar .tab').forEach(t => t.classList.remove('active'));
-  window.event?.target?.classList.add('active');
   currentLevel = level;
+  if (openedLevel && openedLevel !== level) openedLevel = '';
+  syncView();
   renderGrammarPage(1);
 }
 
@@ -46,6 +118,7 @@ function getFilteredLessons() {
 }
 
 function renderGrammarPage(page) {
+  if (view === 'books') { renderBooks(); return; }
   const data = getFilteredLessons();
   const totalPages = Math.max(1, Math.ceil(data.length / pageSize));
   currentPage = Math.min(Math.max(page, 1), totalPages);
@@ -102,7 +175,7 @@ function renderGrammar(data) {
 }
 
 function normalizeSearch(value) {
-  return String(value || '').trim().toLowerCase();
+  return searchKey(value);
 }
 
 function getGrammarMeta(grammar) {
